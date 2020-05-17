@@ -42,7 +42,7 @@
 
 -type certificate() :: #'OTPCertificate'{}.
 -type certificate_pair() :: {certificate(), encoded_certificate()}.
--type authority_pkis() :: #{tls_certificate_validation_pki:t() => exists}.
+-type authoritative_pkis() :: #{tls_certificate_validation_pki:t() => exists}.
 
 %% ------------------------------------------------------------------
 %% API Function Definitions
@@ -53,22 +53,22 @@
            | unknown_ca.
 find_authority(EncodedCertificates) ->
     CertificatePairs = decoded_certificate_pairs(EncodedCertificates),
-    AuthorityPKIs = authority_pkis(),
-    find_authority_recur(CertificatePairs, AuthorityPKIs).
+    AuthoritativePKIs = authoritative_pkis(),
+    find_authority_recur(CertificatePairs, AuthoritativePKIs).
 
 %% ------------------------------------------------------------------
 %% Internal Function Definitions
 %% ------------------------------------------------------------------
 
--spec authority_pkis() -> authority_pkis().
-authority_pkis() ->
+-spec authoritative_pkis() -> authoritative_pkis().
+authoritative_pkis() ->
     ct_expand:term(
       % Evaluated at compile time
       lists:foldl(
-        fun (EncodedAuthorityCertificate, Acc) ->
-                AuthorityCertificate = decode_certificate(EncodedAuthorityCertificate),
-                AuthorityPKI = tls_certificate_validation_pki:extract(AuthorityCertificate),
-                maps:put(AuthorityPKI, exists, Acc)
+        fun (EncodedAuthoritativeCertificate, Acc) ->
+                AuthoritativeCertificate = decode_certificate(EncodedAuthoritativeCertificate),
+                AuthoritativePKI = tls_certificate_validation_pki:extract(AuthoritativeCertificate),
+                maps:put(AuthoritativePKI, exists, Acc)
         end,
         #{}, certifi:cacerts())
      ).
@@ -87,17 +87,17 @@ decoded_certificate_pairs(EncodedCertificates) ->
 decode_certificate(EncodedCertificate) ->
     public_key:pkix_decode_cert(EncodedCertificate, otp).
 
--spec find_authority_recur([certificate_pair()], authority_pkis())
+-spec find_authority_recur([certificate_pair()], authoritative_pkis())
         -> {trusted_ca, encoded_certificate()} |
            unknown_ca.
-find_authority_recur([Pair | NextPairs], AuthorityPKIs) ->
+find_authority_recur([Pair | NextPairs], AuthoritativePKIs) ->
     {Certificate, EncodedCertificate} = Pair,
     CertificatePKI = tls_certificate_validation_pki:extract(Certificate),
-    case maps:is_key(CertificatePKI, AuthorityPKIs) of
+    case maps:is_key(CertificatePKI, AuthoritativePKIs) of
         true ->
             {trusted_ca, EncodedCertificate};
         false ->
-            find_authority_recur(NextPairs, AuthorityPKIs)
+            find_authority_recur(NextPairs, AuthoritativePKIs)
     end;
 find_authority_recur([], _) ->
     unknown_ca.
