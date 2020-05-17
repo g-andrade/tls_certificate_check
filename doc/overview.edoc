@@ -5,8 +5,6 @@
     <img src="https://img.shields.io/hexpm/v/tls_certificate_validation.svg?style=flat"/></a>
 <a target="_parent" href="https://travis-ci.com/g-andrade/tls_certificate_validation" alt="Travis CI Build Status">
     <img src="https://travis-ci.com/g-andrade/tls_certificate_validation.png?branch=master"/></a>
-<a target="_parent" href="https://circleci.com/gh/g-andrade/tls_certificate_validation/tree/master" alt="Circle CI Build Status">
-    <img src="https://circleci.com/gh/g-andrade/tls_certificate_validation/tree/master.svg?style=svg"/></a>
 
 `tls_certificate_validation' is a library for Erlang/OTP and Elixir that provides TLS/SSL
 <a target="_parent" href="https://erlang.org/doc/man/ssl.html#type-tls_client_option">connect options</a>
