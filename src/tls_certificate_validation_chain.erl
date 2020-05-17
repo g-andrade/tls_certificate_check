@@ -30,7 +30,8 @@
 %% ------------------------------------------------------------------
 
 -export(
-   [find_authority/1
+   [authorities/0,
+    find_authority/1
    ]).
 
 %% ------------------------------------------------------------------
@@ -47,6 +48,10 @@
 %% ------------------------------------------------------------------
 %% API Function Definitions
 %% ------------------------------------------------------------------
+
+-spec authorities() -> [encoded_certificate()].
+authorities() ->
+    certifi:cacerts().
 
 -spec find_authority([encoded_certificate()])
         -> {trusted_ca, encoded_certificate()}
@@ -70,7 +75,7 @@ authoritative_pkis() ->
                 AuthoritativePKI = tls_certificate_validation_pki:extract(AuthoritativeCertificate),
                 maps:put(AuthoritativePKI, exists, Acc)
         end,
-        #{}, certifi:cacerts())
+        #{}, authorities())
      ).
 
 -spec decoded_certificate_pairs([encoded_certificate()])

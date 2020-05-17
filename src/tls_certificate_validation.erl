@@ -65,7 +65,7 @@ connect_opts(Target) ->
 connect_opts(Target, Overrides) ->
     try target_to_hostname(Target) of
         Hostname ->
-            AuthorityCertificate = certifi:cacerts(),
+            EncodedAuthoritativeCertificates = tls_certificate_validation_chain:authorities(),
             CertificateVerificationFunOpts = [{check_hostname, Hostname}],
             CertificateVerificationFun = {fun ssl_verify_hostname:verify_fun/3,
                                           CertificateVerificationFunOpts},
@@ -74,7 +74,7 @@ connect_opts(Target, Overrides) ->
             merge_opts(
               [{verify, verify_peer},
                {depth, ?DEFAULT_MAX_CERTIFICATE_CHAIN_DEPTH},
-               {cacerts, AuthorityCertificate},
+               {cacerts, EncodedAuthoritativeCertificates},
                {partial_chain, fun tls_certificate_validation_chain:find_authority/1},
                {verify_fun, CertificateVerificationFun}
                | HostnameCheckOpts],
