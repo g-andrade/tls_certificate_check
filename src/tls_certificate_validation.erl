@@ -70,20 +70,14 @@ connect_opts(Target, Overrides) ->
             CertificateVerificationFun = {fun ssl_verify_hostname:verify_fun/3,
                                           CertificateVerificationFunOpts},
 
-            % Required for OTP 23 as they fixed TLS hostname validation.
-            % See: https://bugs.erlang.org/browse/ERL-1232
-            HostnameVerificationProtocol = https, % FIXME
-            HostnameVerificationMatchFun = public_key:pkix_verify_hostname_match_fun(
-                                             HostnameVerificationProtocol),
-
+            HostnameCheckOpts = hostname_check_opts(),
             merge_opts(
               [{verify, verify_peer},
                {depth, ?DEFAULT_MAX_CERTIFICATE_CHAIN_DEPTH},
                {cacerts, AuthorityCertificate},
                {partial_chain, fun tls_certificate_validation_chain:find_authority/1},
-               {verify_fun, CertificateVerificationFun},
-               {customize_hostname_check, [{match_fun, HostnameVerificationMatchFun}]}
-              ],
+               {verify_fun, CertificateVerificationFun}
+               | HostnameCheckOpts],
               Overrides)
     catch
         http_target ->
@@ -116,6 +110,18 @@ target_to_hostname(Target) ->
         _ ->
             binary_to_list(BinaryTarget)
     end.
+-endif.
+
+-ifdef(NO_CUSTOM_HOSTNAME_CHECK).
+hostname_check_opts() ->
+    [].
+-else.
+hostname_check_opts() ->
+    % Required for OTP 23 as they fixed TLS hostname validation.
+    % See: https://bugs.erlang.org/browse/ERL-1232
+    Protocol = https, % FIXME
+    MatchFun = public_key:pkix_verify_hostname_match_fun(Protocol),
+    [{customize_hostname_check, [{match_fun, MatchFun}]}].
 -endif.
 
 merge_opts(BaseOpts, []) ->
