@@ -63,7 +63,7 @@ find_authority(EncodedCertificates) ->
 -spec authoritative_pkis() -> authoritative_pkis().
 authoritative_pkis() ->
     ct_expand:term(
-      % Evaluated at compile time
+      % Evaluated at compile time for performance
       lists:foldl(
         fun (EncodedAuthoritativeCertificate, Acc) ->
                 AuthoritativeCertificate = decode_certificate(EncodedAuthoritativeCertificate),
