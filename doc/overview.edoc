@@ -3,8 +3,8 @@
 
 <a target="_parent" href="https://hex.pm/packages/tls_certificate_validation" alt="Hex.pm Package">
     <img src="https://img.shields.io/hexpm/v/tls_certificate_validation.svg?style=flat"/></a>
-<a target="_parent" href="https://travis-ci.org/g-andrade/tls_certificate_validation" alt="Travis CI Build Status">
-    <img src="https://travis-ci.org/g-andrade/tls_certificate_validation.png?branch=master"/></a>
+<a target="_parent" href="https://travis-ci.com/g-andrade/tls_certificate_validation" alt="Travis CI Build Status">
+    <img src="https://travis-ci.com/g-andrade/tls_certificate_validation.png?branch=master"/></a>
 <a target="_parent" href="https://circleci.com/gh/g-andrade/tls_certificate_validation/tree/master" alt="Circle CI Build Status">
     <img src="https://circleci.com/gh/g-andrade/tls_certificate_validation/tree/master.svg?style=svg"/></a>
 
