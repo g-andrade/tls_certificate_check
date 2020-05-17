@@ -1,0 +1,55 @@
+% vim: set ft=erlang:
+case erlang:function_exported(rebar3, main, 1) orelse
+     {deps, lists:keyfind(deps, 1, CONFIG)}
+of
+    true ->
+        % rebar3
+        CONFIG;
+    {deps, false} ->
+        % no override needed
+        CONFIG;
+    {deps, {_, Deps}} ->
+        %
+        % rebar 2.x - convert deps to old format
+        % THIS MAY STOP WORKING AT ANY MOMENT.
+        % USE AT YOUR OWN RISK.
+        %
+        error_logger:warning_msg("~n~n"
+                                 "\t!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!~n"
+                                 "\t!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!~n"
+                                 "\t*********************************************************************~n"
+                                 "\t~n"
+                                 "\t[tls_certificate_validation] You're **strongly** incentivized to use `rebar3`.~n"
+                                 "\tCompatibility with rebar 2 is unmaintained and will be removed in the near future.~n"
+                                 "\t~n"
+                                 "\t*********************************************************************~n"
+                                 "\t!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!~n"
+                                 "\t!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!~n"),
+
+        {_, ErlOpts} = lists:keyfind(erl_opts, 1, CONFIG),
+        OverriddenErlOpts = ErlOpts -- [warn_missing_spec],
+        OverriddenSortableDeps =
+            lists:foldr(
+              fun ({certifi, Version}, Acc) ->
+                      [{1, {certifi, ".*", {git, "https://github.com/certifi/erlang-certifi.git",
+                                            {tag, Version}}}}
+                       | Acc];
+                  ({parse_trans, Version}, Acc) ->
+                      [{2, {parse_trans, ".*", {git, "https://github.com/uwiger/parse_trans.git",
+                                                {tag, "3.3.0"}}}}
+                       | Acc];
+                  ({ssl_verify_fun, Version}, Acc) ->
+                      [{3, {ssl_verify_fun, ".*", {git, "https://github.com/deadtrickster/ssl_verify_fun.erl.git",
+                                                   {tag, Version}}}}
+                       | Acc];
+                  ({Name, Version}, _Acc) ->
+                      MsgErrorIo = io_lib:format("Hex package '~ts', version \"~ts\": missing Git repo",
+                                                 [Name, Version]),
+                      error(MsgErrorIo)
+              end,
+              [], Deps),
+
+        OverriddenDeps = [element(2, Pair) || Pair <- lists:keysort(1, OverriddenSortableDeps)],
+        Config2 = lists:keystore(deps, 1, CONFIG, {deps,OverriddenDeps}),
+        lists:keystore(erl_opts, 1, Config2, {erl_opts,OverriddenErlOpts})
+end.

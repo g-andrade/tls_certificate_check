@@ -1,0 +1,123 @@
+@title tls_certificate_validation
+@doc
+
+<a target="_parent" href="https://hex.pm/packages/tls_certificate_validation" alt="Hex.pm Package">
+    <img src="https://img.shields.io/hexpm/v/tls_certificate_validation.svg?style=flat"/></a>
+<a target="_parent" href="https://travis-ci.org/g-andrade/tls_certificate_validation" alt="Travis CI Build Status">
+    <img src="https://travis-ci.org/g-andrade/tls_certificate_validation.png?branch=master"/></a>
+<a target="_parent" href="https://circleci.com/gh/g-andrade/tls_certificate_validation/tree/master" alt="Circle CI Build Status">
+    <img src="https://circleci.com/gh/g-andrade/tls_certificate_validation/tree/master.svg?style=svg"/></a>
+
+`tls_certificate_validation' is a library for Erlang/OTP and Elixir that provides TLS/SSL
+<a target="_parent" href="https://erlang.org/doc/man/ssl.html#type-tls_client_option">connect options</a>
+required for negotiating connections whose security can be traced back to a
+<a target="_parent" href="https://www.mozilla.org/en-US/about/governance/policies/security-group/certs/included/">
+trusted certificate authority</a>.
+
+It wraps <a target="_parent" href="https://github.com/certifi/erlang-certifi">certifi</a>
+and <a target="_parent" href="https://github.com/deadtrickster/ssl_verify_fun.erl">ssl_verify_fun</a>
+together with the boilerplate code required for validating
+<a target="_parent" href="https://github.com/elixir-mint/mint/issues/95">disoderly certificate
+chains</a>.
+
+<h3>Usage</h3>
+
+<h4>Erlang</h4>
+
+<h5>1. Import as a dependency</h5>
+
+rebar.config
+<pre lang="erlang" class="erlang">
+{deps,
+ [% [...]
+  {tls_certificate_validation, "1.0.0"}
+  ]}.
+</pre>
+
+your_application.app.src:
+<pre lang="erlang" class="erlang">
+  {applications,
+   [kernel,
+    stdlib,
+    % [...]
+    tls_certificate_validation
+   ]}
+</pre>
+
+<h5>2. Make your connections safer</h5>
+
+When using `httpc'
+<pre lang="erlang" class="erlang">
+URL = "https://www.example.com/",
+TlsOpts = tls_certificate_validation:connect_opts(URL),
+HttpOpts = [{ssl, TlsOpts}],
+httpc:request(get, {URL, []}, HttpOpts, [])
+</pre>
+
+When using `ssl':
+<pre lang="erlang" class="erlang">
+Host = "example.com",
+Options = tls_certificate_validation:connect_opts(Host),
+ssl:connect(Host, 443, Options, 5000)
+</pre>
+
+<h4>Elixir</h4>
+
+<h5>1. Import as a dependency</h5>
+
+mix.exs
+<pre lang="elixir" class="elixir">
+  defp deps do
+    [
+      # [...]
+      {:tls_certificate_validation, "1.0.0"}
+    ]
+  end
+</pre>
+
+<h5>2. Make your connections safer</h5>
+
+When using `ssl':
+<pre lang="erlang" class="erlang">
+Host = "example.com",
+Options = tls_certificate_validation:connect_opts(Host),
+ssl:connect(Host, 443, Options, 5000)
+</pre>
+
+<h5>API Reference</h5>
+
+The API reference can be found on
+<a target="_parent" href="https://hexdocs.pm/tls_certificate_validation/">HexDocs</a>.
+
+<h5>Tested setup</h5>
+
+<ul>
+<li>Erlang/OTP 19 or newer</li>
+<li>rebar3</li>
+</ul>
+
+<h5 id="license">License</h5>
+
+MIT License
+
+Copyright (c) 2020 Guilherme Andrade
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
+
+@end
