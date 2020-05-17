@@ -100,7 +100,7 @@ target_to_hostname(Target) ->
     case http_uri:parse(StrTarget) of
         {ok, {http, _, _, _, _, _}} ->
             throw(http_target);
-        {ok, {http, _, Hostname, _, _, _}} ->
+        {ok, {_, _, Hostname, _, _, _}} ->
             Hostname;
         _ ->
             StrTarget
