@@ -6,15 +6,17 @@
 <a target="_parent" href="https://travis-ci.com/g-andrade/tls_certificate_check" alt="Travis CI Build Status">
     <img src="https://travis-ci.com/g-andrade/tls_certificate_check.png?branch=master"/></a>
 
-`tls_certificate_check' is a library for Erlang/OTP and Elixir that provides TLS/SSL
-<a target="_parent" href="https://erlang.org/doc/man/ssl.html#type-tls_client_option">connect options</a>
-required for negotiating connections whose security can be traced back to a
-<a target="_parent" href="https://www.mozilla.org/en-US/about/governance/policies/security-group/certs/included/">
-trusted certificate authority</a>.
+`tls_certificate_check' is a library for Erlang/OTP and Elixir intended on easing
+the establishement of
+<a target="_parent" href="https://wiki.mozilla.org/index.php?title=CA/IncludedCertificates&amp;redirect=no">
+more secure</a> HTTPS connections in ordinary setups.
 
-It wraps <a target="_parent" href="https://github.com/certifi/erlang-certifi">certifi</a>
-and <a target="_parent" href="https://github.com/deadtrickster/ssl_verify_fun.erl">ssl_verify_fun</a>
-together with the boilerplate code required for validating
+Other kinds of TLS/SSL connections may also benefit from it.
+
+It wraps <a target="_parent" href="https://github.com/certifi/erlang-certifi">certifi</a>,
+a certificate authority bundle, together with
+<a target="_parent" href="https://github.com/deadtrickster/ssl_verify_fun.erl">ssl_verify_fun</a>
+plus all the the boilerplate code required for validating
 <a target="_parent" href="https://github.com/elixir-mint/mint/issues/95">disoderly certificate
 chains</a>.
 
@@ -46,23 +48,11 @@ chains</a>.
 
 <h5>2. Make your connections safer</h5>
 
-<details>
-<summary>When using `httpc'</summary>
-<pre lang="erlang" class="erlang">
-URL = "https://www.example.com/",
-HttpOptions = [{ssl, tls_certificate_check:options(URL)}],
-httpc:request(get, {URL, []}, HttpOptions, [])
-</pre>
-</details>
-
-<details>
-<summary>When using `ssl'</summary>
 <pre lang="erlang" class="erlang">
 Host = "example.com",
 Options = tls_certificate_check:options(Host),
 ssl:connect(Host, 443, Options, 5000)
 </pre>
-</details>
 
 <h3>Usage - Elixir</h3>
 
@@ -82,14 +72,11 @@ ssl:connect(Host, 443, Options, 5000)
 
 <h5>2. Make your connections safer</h5>
 
-<details>
-<summary>When using `ssl'</summary>
-<pre lang="erlang" class="erlang">
-Host = "example.com",
-Options = :tls_certificate_check.options(Host),
-:ssl.connect(Host, 443, Options, 5000)
+<pre lang="elixir" class="elixir">
+host = "example.com"
+options = :tls_certificate_check.options(host)
+:ssl.connect(host, 443, options, 5000)
 </pre>
-</details>
 
 <h3>API Reference</h3>
 

@@ -3,16 +3,17 @@
 [![](https://img.shields.io/hexpm/v/tls_certificate_check.svg?style=flat)](https://hex.pm/packages/tls_certificate_check)
 [![](https://travis-ci.com/g-andrade/tls_certificate_check.png?branch=master)](https://travis-ci.com/g-andrade/tls_certificate_check)
 
-`tls_certificate_check` is a library for Erlang/OTP and Elixir that
-provides TLS/SSL [connect
-options](https://erlang.org/doc/man/ssl.html#type-tls_client_option)
-required for negotiating connections whose security can be traced back
-to a [trusted certificate
-authority](https://www.mozilla.org/en-US/about/governance/policies/security-group/certs/included/).
+`tls_certificate_check` is a library for Erlang/OTP and Elixir intended
+on easing the establishement of [more
+secure](https://wiki.mozilla.org/index.php?title=CA/IncludedCertificates&redirect=no)
+HTTPS connections in ordinary setups.
 
-It wraps [certifi](https://github.com/certifi/erlang-certifi) and
+Other kinds of TLS/SSL connections may also benefit from it.
+
+It wraps [certifi](https://github.com/certifi/erlang-certifi), a
+certificate authority bundle, together with
 [ssl\_verify\_fun](https://github.com/deadtrickster/ssl_verify_fun.erl)
-together with the boilerplate code required for validating [disoderly
+plus all the the boilerplate code required for validating [disoderly
 certificate chains](https://github.com/elixir-mint/mint/issues/95).
 
 ### Usage - Erlang
@@ -41,16 +42,6 @@ your\_application.app.src
 
 ##### 2\. Make your connections safer
 
-When using `httpc`
-
-``` erlang
-URL = "https://www.example.com/",
-HttpOptions = [{ssl, tls_certificate_check:options(URL)}],
-httpc:request(get, {URL, []}, HttpOptions, [])
-```
-
-When using `ssl`
-
 ``` erlang
 Host = "example.com",
 Options = tls_certificate_check:options(Host),
@@ -74,12 +65,10 @@ mix.exs
 
 ##### 2\. Make your connections safer
 
-When using `ssl`
-
-``` erlang
-Host = "example.com",
-Options = :tls_certificate_check.options(Host),
-:ssl.connect(Host, 443, Options, 5000)
+``` elixir
+host = "example.com"
+options = :tls_certificate_check.options(host)
+:ssl.connect(host, 443, options, 5000)
 ```
 
 ### API Reference
