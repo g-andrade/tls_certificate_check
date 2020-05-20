@@ -1,9 +1,9 @@
-# tls\_certificate\_validation
+# tls\_certificate\_check
 
-[![](https://img.shields.io/hexpm/v/tls_certificate_validation.svg?style=flat)](https://hex.pm/packages/tls_certificate_validation)
-[![](https://travis-ci.com/g-andrade/tls_certificate_validation.png?branch=master)](https://travis-ci.com/g-andrade/tls_certificate_validation)
+[![](https://img.shields.io/hexpm/v/tls_certificate_check.svg?style=flat)](https://hex.pm/packages/tls_certificate_check)
+[![](https://travis-ci.com/g-andrade/tls_certificate_check.png?branch=master)](https://travis-ci.com/g-andrade/tls_certificate_check)
 
-`tls_certificate_validation` is a library for Erlang/OTP and Elixir that
+`tls_certificate_check` is a library for Erlang/OTP and Elixir that
 provides TLS/SSL [connect
 options](https://erlang.org/doc/man/ssl.html#type-tls_client_option)
 required for negotiating connections whose security can be traced back
@@ -26,7 +26,7 @@ rebar.config
 ``` erlang
 {deps,
  [% [...]
-  {tls_certificate_validation, "1.0.0"}
+  {tls_certificate_check, "1.0.0"}
   ]}.
 ```
 
@@ -37,7 +37,7 @@ your\_application.app.src:
    [kernel,
     stdlib,
     % [...]
-    tls_certificate_validation
+    tls_certificate_check
    ]}
 ```
 
@@ -47,7 +47,7 @@ When using `httpc`
 
 ``` erlang
 URL = "https://www.example.com/",
-TlsOpts = tls_certificate_validation:opts(URL),
+TlsOpts = tls_certificate_check:options(URL),
 HttpOpts = [{ssl, TlsOpts}],
 httpc:request(get, {URL, []}, HttpOpts, [])
 ```
@@ -56,7 +56,7 @@ When using `ssl`:
 
 ``` erlang
 Host = "example.com",
-Options = tls_certificate_validation:opts(Host),
+Options = tls_certificate_check:options(Host),
 ssl:connect(Host, 443, Options, 5000)
 ```
 
@@ -70,7 +70,7 @@ mix.exs
   defp deps do
     [
       # [...]
-      {:tls_certificate_validation, "1.0.0"}
+      {:tls_certificate_check, "1.0.0"}
     ]
   end
 ```
@@ -81,14 +81,14 @@ When using `ssl`:
 
 ``` erlang
 Host = "example.com",
-Options = tls_certificate_validation:opts(Host),
+Options = tls_certificate_check:options(Host),
 ssl:connect(Host, 443, Options, 5000)
 ```
 
 ##### API Reference
 
 The API reference can be found on
-[HexDocs](https://hexdocs.pm/tls_certificate_validation/).
+[HexDocs](https://hexdocs.pm/tls_certificate_check/).
 
 ##### Tested setup
 
