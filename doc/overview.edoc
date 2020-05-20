@@ -18,21 +18,22 @@ together with the boilerplate code required for validating
 <a target="_parent" href="https://github.com/elixir-mint/mint/issues/95">disoderly certificate
 chains</a>.
 
-<h3>Usage</h3>
-
-<h4>Erlang</h4>
+<h3>Usage - Erlang</h3>
 
 <h5>1. Import as a dependency</h5>
 
-rebar.config
+<details>
+<summary>rebar.config</summary>
 <pre lang="erlang" class="erlang">
 {deps,
  [% [...]
   {tls_certificate_check, "1.0.0"}
   ]}.
 </pre>
+</details>
 
-your_application.app.src:
+<details>
+<summary>your_application.app.src</summary>
 <pre lang="erlang" class="erlang">
   {applications,
    [kernel,
@@ -41,29 +42,35 @@ your_application.app.src:
     tls_certificate_check
    ]}
 </pre>
+</details>
 
 <h5>2. Make your connections safer</h5>
 
-When using `httpc'
+<details>
+<summary>When using `httpc'</summary>
 <pre lang="erlang" class="erlang">
 URL = "https://www.example.com/",
 TlsOpts = tls_certificate_check:options(URL),
 HttpOpts = [{ssl, TlsOpts}],
 httpc:request(get, {URL, []}, HttpOpts, [])
 </pre>
+</details>
 
-When using `ssl':
+<details>
+<summary>When using `ssl'</summary>
 <pre lang="erlang" class="erlang">
 Host = "example.com",
 Options = tls_certificate_check:options(Host),
 ssl:connect(Host, 443, Options, 5000)
 </pre>
+</details>
 
-<h4>Elixir</h4>
+<h3>Usage - Elixir</h3>
 
 <h5>1. Import as a dependency</h5>
 
-mix.exs
+<details>
+<summary>mix.exs</summary>
 <pre lang="elixir" class="elixir">
   defp deps do
     [
@@ -72,29 +79,32 @@ mix.exs
     ]
   end
 </pre>
+</details>
 
 <h5>2. Make your connections safer</h5>
 
-When using `ssl':
+<details>
+<summary>When using `ssl'</summary>
 <pre lang="erlang" class="erlang">
 Host = "example.com",
-Options = tls_certificate_check:options(Host),
-ssl:connect(Host, 443, Options, 5000)
+Options = :tls_certificate_check.options(Host),
+:ssl.connect(Host, 443, Options, 5000)
 </pre>
+</details>
 
-<h5>API Reference</h5>
+<h3>API Reference</h3>
 
 The API reference can be found on
 <a target="_parent" href="https://hexdocs.pm/tls_certificate_check/">HexDocs</a>.
 
-<h5>Tested setup</h5>
+<h3>Tested setup</h3>
 
 <ul>
 <li>Erlang/OTP 19 or newer</li>
 <li>rebar3</li>
 </ul>
 
-<h5 id="license">License</h5>
+<h3 id="license">License</h3>
 
 MIT License
 

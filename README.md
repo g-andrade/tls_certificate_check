@@ -30,7 +30,7 @@ rebar.config
   ]}.
 ```
 
-your\_application.app.src:
+your\_application.app.src
 
 ``` erlang
   {applications,
@@ -52,7 +52,7 @@ HttpOpts = [{ssl, TlsOpts}],
 httpc:request(get, {URL, []}, HttpOpts, [])
 ```
 
-When using `ssl`:
+When using `ssl`
 
 ``` erlang
 Host = "example.com",
@@ -77,7 +77,7 @@ mix.exs
 
 ##### 2\. Make your connections safer
 
-When using `ssl`:
+When using `ssl`
 
 ``` erlang
 Host = "example.com",
