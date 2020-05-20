@@ -144,7 +144,7 @@ hostname_check_opts() ->
 hostname_check_opts() ->
     % Required for OTP 23 as they fixed TLS hostname validation.
     % See: https://bugs.erlang.org/browse/ERL-1232
-    Protocol = https, % FIXME
+    Protocol = https,
     MatchFun = public_key:pkix_verify_hostname_match_fun(Protocol),
     [{customize_hostname_check, [{match_fun, MatchFun}]}].
 -endif.
