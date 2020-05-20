@@ -15,9 +15,7 @@ It wraps [certifi](https://github.com/certifi/erlang-certifi) and
 together with the boilerplate code required for validating [disoderly
 certificate chains](https://github.com/elixir-mint/mint/issues/95).
 
-### Usage
-
-#### Erlang
+### Usage - Erlang
 
 ##### 1\. Import as a dependency
 
@@ -47,9 +45,8 @@ When using `httpc`
 
 ``` erlang
 URL = "https://www.example.com/",
-TlsOpts = tls_certificate_check:options(URL),
-HttpOpts = [{ssl, TlsOpts}],
-httpc:request(get, {URL, []}, HttpOpts, [])
+HttpOptions = [{ssl, tls_certificate_check:options(URL)}],
+httpc:request(get, {URL, []}, HttpOptions, [])
 ```
 
 When using `ssl`
@@ -60,7 +57,7 @@ Options = tls_certificate_check:options(Host),
 ssl:connect(Host, 443, Options, 5000)
 ```
 
-#### Elixir
+### Usage - Elixir
 
 ##### 1\. Import as a dependency
 
@@ -81,21 +78,21 @@ When using `ssl`
 
 ``` erlang
 Host = "example.com",
-Options = tls_certificate_check:options(Host),
-ssl:connect(Host, 443, Options, 5000)
+Options = :tls_certificate_check.options(Host),
+:ssl.connect(Host, 443, Options, 5000)
 ```
 
-##### API Reference
+### API Reference
 
 The API reference can be found on
 [HexDocs](https://hexdocs.pm/tls_certificate_check/).
 
-##### Tested setup
+### Tested setup
 
   - Erlang/OTP 19 or newer
   - rebar3
 
-##### License
+### License
 
 MIT License
 

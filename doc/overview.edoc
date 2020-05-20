@@ -50,9 +50,8 @@ chains</a>.
 <summary>When using `httpc'</summary>
 <pre lang="erlang" class="erlang">
 URL = "https://www.example.com/",
-TlsOpts = tls_certificate_check:options(URL),
-HttpOpts = [{ssl, TlsOpts}],
-httpc:request(get, {URL, []}, HttpOpts, [])
+HttpOptions = [{ssl, tls_certificate_check:options(URL)}],
+httpc:request(get, {URL, []}, HttpOptions, [])
 </pre>
 </details>
 
