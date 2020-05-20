@@ -57,12 +57,37 @@
 %% API Function Definitions
 %% ------------------------------------------------------------------
 
--spec options(unicode:chardata()) -> [option(), ...].
+%% @doc Returns the list of `ssl:connect' options
+%% necessary to validate the server certificate against
+%% a list of trusted authorities, as well as to verify
+%% whether the server hostname matches one in the server
+%% certificate.
+%%
+%% <ul>
+%% <li>`Target' can be either a hostname or an HTTP URL, as `iodata()'</li>
+%% </ul>
+-spec options(Target) -> Options
+        when Target :: Hostname | URL,
+             Hostname :: iodata(),
+             URL :: iodata(),
+             Options :: [option()].
 options(Target) ->
     options(Target, []).
 
--spec options(unicode:chardata(), [option()]) -> [option(), ...].
-options(Target, OptionOverrides) ->
+%% @doc Like `:options/1' but it allows the caller
+%% to override one or more options.
+%%
+%% <ul>
+%% <li>`Target' must be either a hostname or an HTTP URL, as `iodata()'</li>
+%% <li>`Overrides' must be a list of `option()' values</li>
+%% </ul>
+-spec options(Target, Overrides) -> Options
+        when Target :: Hostname | URL,
+             Hostname :: iodata(),
+             URL :: iodata(),
+             Overrides :: [option()],
+             Options :: [option()].
+options(Target, Overrides) ->
     try target_to_hostname(Target) of
         Hostname ->
             EncodedAuthoritativeCertificates = tls_certificate_chain:authorities(),
@@ -78,10 +103,10 @@ options(Target, OptionOverrides) ->
                {partial_chain, fun tls_certificate_chain:find_authority/1},
                {verify_fun, CertificateVerificationFun}
                | HostnameCheckOptions],
-              OptionOverrides)
+              Overrides)
     catch
         http_target ->
-            OptionOverrides
+            Overrides
     end.
 
 %% ------------------------------------------------------------------
