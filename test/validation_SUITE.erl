@@ -195,9 +195,9 @@ validation_target(Config, Host) ->
 tls_validation_opts(Config, ValidationTarget) ->
     case proplists:get_value(validation_overrides, Config) of
         Overrides when is_list(Overrides) ->
-            tls_certificate_validation:connect_opts(ValidationTarget, Overrides);
+            tls_certificate_validation:opts(ValidationTarget, Overrides);
         _ ->
-            tls_certificate_validation:connect_opts(ValidationTarget)
+            tls_certificate_validation:opts(ValidationTarget)
     end.
 
 assert_validation_overrides_were_kept(Config, TLSValidationOpts) ->

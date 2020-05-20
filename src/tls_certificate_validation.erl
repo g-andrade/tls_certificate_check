@@ -25,13 +25,13 @@
 %% ------------------------------------------------------------------
 
 -export(
-   [connect_opts/1,
-    connect_opts/2
+   [opts/1,
+    opts/2
    ]).
 
 -ignore_xref(
-   [connect_opts/1,
-    connect_opts/2
+   [opts/1,
+    opts/2
    ]).
 
 %% ------------------------------------------------------------------
@@ -57,12 +57,12 @@
 %% API Function Definitions
 %% ------------------------------------------------------------------
 
--spec connect_opts(unicode:chardata()) -> [ssl_option(), ...].
-connect_opts(Target) ->
-    connect_opts(Target, []).
+-spec opts(unicode:chardata()) -> [ssl_option(), ...].
+opts(Target) ->
+    opts(Target, []).
 
--spec connect_opts(unicode:chardata(), [ssl_option()]) -> [ssl_option(), ...].
-connect_opts(Target, Overrides) ->
+-spec opts(unicode:chardata(), [ssl_option()]) -> [ssl_option(), ...].
+opts(Target, Overrides) ->
     try target_to_hostname(Target) of
         Hostname ->
             EncodedAuthoritativeCertificates = tls_certificate_validation_chain:authorities(),

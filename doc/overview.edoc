@@ -47,7 +47,7 @@ your_application.app.src:
 When using `httpc'
 <pre lang="erlang" class="erlang">
 URL = "https://www.example.com/",
-TlsOpts = tls_certificate_validation:connect_opts(URL),
+TlsOpts = tls_certificate_validation:opts(URL),
 HttpOpts = [{ssl, TlsOpts}],
 httpc:request(get, {URL, []}, HttpOpts, [])
 </pre>
@@ -55,7 +55,7 @@ httpc:request(get, {URL, []}, HttpOpts, [])
 When using `ssl':
 <pre lang="erlang" class="erlang">
 Host = "example.com",
-Options = tls_certificate_validation:connect_opts(Host),
+Options = tls_certificate_validation:opts(Host),
 ssl:connect(Host, 443, Options, 5000)
 </pre>
 
@@ -78,7 +78,7 @@ mix.exs
 When using `ssl':
 <pre lang="erlang" class="erlang">
 Host = "example.com",
-Options = tls_certificate_validation:connect_opts(Host),
+Options = tls_certificate_validation:opts(Host),
 ssl:connect(Host, 443, Options, 5000)
 </pre>
 

@@ -47,7 +47,7 @@ When using `httpc`
 
 ``` erlang
 URL = "https://www.example.com/",
-TlsOpts = tls_certificate_validation:connect_opts(URL),
+TlsOpts = tls_certificate_validation:opts(URL),
 HttpOpts = [{ssl, TlsOpts}],
 httpc:request(get, {URL, []}, HttpOpts, [])
 ```
@@ -56,7 +56,7 @@ When using `ssl`:
 
 ``` erlang
 Host = "example.com",
-Options = tls_certificate_validation:connect_opts(Host),
+Options = tls_certificate_validation:opts(Host),
 ssl:connect(Host, 443, Options, 5000)
 ```
 
@@ -81,7 +81,7 @@ When using `ssl`:
 
 ``` erlang
 Host = "example.com",
-Options = tls_certificate_validation:connect_opts(Host),
+Options = tls_certificate_validation:opts(Host),
 ssl:connect(Host, 443, Options, 5000)
 ```
 
