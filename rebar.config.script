@@ -19,7 +19,7 @@ of
                                  "\t!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!~n"
                                  "\t*********************************************************************~n"
                                  "\t~n"
-                                 "\t[tls_certificate_validation] You're **strongly** incentivized to use `rebar3`.~n"
+                                 "\t[tls_certificate_check] You're **strongly** incentivized to use `rebar3`.~n"
                                  "\tCompatibility with rebar 2 is unmaintained and will be removed in the near future.~n"
                                  "\t~n"
                                  "\t*********************************************************************~n"

@@ -1,12 +1,12 @@
-@title tls_certificate_validation
+@title tls_certificate_check
 @doc
 
-<a target="_parent" href="https://hex.pm/packages/tls_certificate_validation" alt="Hex.pm Package">
-    <img src="https://img.shields.io/hexpm/v/tls_certificate_validation.svg?style=flat"/></a>
-<a target="_parent" href="https://travis-ci.com/g-andrade/tls_certificate_validation" alt="Travis CI Build Status">
-    <img src="https://travis-ci.com/g-andrade/tls_certificate_validation.png?branch=master"/></a>
+<a target="_parent" href="https://hex.pm/packages/tls_certificate_check" alt="Hex.pm Package">
+    <img src="https://img.shields.io/hexpm/v/tls_certificate_check.svg?style=flat"/></a>
+<a target="_parent" href="https://travis-ci.com/g-andrade/tls_certificate_check" alt="Travis CI Build Status">
+    <img src="https://travis-ci.com/g-andrade/tls_certificate_check.png?branch=master"/></a>
 
-`tls_certificate_validation' is a library for Erlang/OTP and Elixir that provides TLS/SSL
+`tls_certificate_check' is a library for Erlang/OTP and Elixir that provides TLS/SSL
 <a target="_parent" href="https://erlang.org/doc/man/ssl.html#type-tls_client_option">connect options</a>
 required for negotiating connections whose security can be traced back to a
 <a target="_parent" href="https://www.mozilla.org/en-US/about/governance/policies/security-group/certs/included/">
@@ -28,7 +28,7 @@ rebar.config
 <pre lang="erlang" class="erlang">
 {deps,
  [% [...]
-  {tls_certificate_validation, "1.0.0"}
+  {tls_certificate_check, "1.0.0"}
   ]}.
 </pre>
 
@@ -38,7 +38,7 @@ your_application.app.src:
    [kernel,
     stdlib,
     % [...]
-    tls_certificate_validation
+    tls_certificate_check
    ]}
 </pre>
 
@@ -47,7 +47,7 @@ your_application.app.src:
 When using `httpc'
 <pre lang="erlang" class="erlang">
 URL = "https://www.example.com/",
-TlsOpts = tls_certificate_validation:options(URL),
+TlsOpts = tls_certificate_check:options(URL),
 HttpOpts = [{ssl, TlsOpts}],
 httpc:request(get, {URL, []}, HttpOpts, [])
 </pre>
@@ -55,7 +55,7 @@ httpc:request(get, {URL, []}, HttpOpts, [])
 When using `ssl':
 <pre lang="erlang" class="erlang">
 Host = "example.com",
-Options = tls_certificate_validation:options(Host),
+Options = tls_certificate_check:options(Host),
 ssl:connect(Host, 443, Options, 5000)
 </pre>
 
@@ -68,7 +68,7 @@ mix.exs
   defp deps do
     [
       # [...]
-      {:tls_certificate_validation, "1.0.0"}
+      {:tls_certificate_check, "1.0.0"}
     ]
   end
 </pre>
@@ -78,14 +78,14 @@ mix.exs
 When using `ssl':
 <pre lang="erlang" class="erlang">
 Host = "example.com",
-Options = tls_certificate_validation:options(Host),
+Options = tls_certificate_check:options(Host),
 ssl:connect(Host, 443, Options, 5000)
 </pre>
 
 <h5>API Reference</h5>
 
 The API reference can be found on
-<a target="_parent" href="https://hexdocs.pm/tls_certificate_validation/">HexDocs</a>.
+<a target="_parent" href="https://hexdocs.pm/tls_certificate_check/">HexDocs</a>.
 
 <h5>Tested setup</h5>
 

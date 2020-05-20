@@ -1,10 +1,10 @@
-{application, tls_certificate_validation,
- [{description, "TLS/SSL certificate validation for humans"},
+{application, tls_certificate_check,
+ [{description, "TLS/SSL certificate verification for humans"},
   {vsn, "0.1.0"}, % FIXME
   {registered, []},
   {applications,
    [kernel,
-    inets, % remove as soon as `USE_URI_STRING' stops being conditional
+    inets, % remove as soon as `NO_URI_STRING' is no longer needed
     public_key,
     ssl,
     stdlib,

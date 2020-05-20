@@ -18,7 +18,7 @@
 %% FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 %% DEALINGS IN THE SOFTWARE.
 
--module(tls_certificate_validation).
+-module(tls_certificate_check).
 
 %% ------------------------------------------------------------------
 %% API Function Exports
@@ -65,7 +65,7 @@ options(Target) ->
 options(Target, OptionOverrides) ->
     try target_to_hostname(Target) of
         Hostname ->
-            EncodedAuthoritativeCertificates = tls_certificate_validation_chain:authorities(),
+            EncodedAuthoritativeCertificates = tls_certificate_chain:authorities(),
             CertificateVerificationFunOptions = [{check_hostname, Hostname}],
             CertificateVerificationFun = {fun ssl_verify_hostname:verify_fun/3,
                                           CertificateVerificationFunOptions},
@@ -75,7 +75,7 @@ options(Target, OptionOverrides) ->
               [{verify, verify_peer},
                {depth, ?DEFAULT_MAX_CERTIFICATE_CHAIN_DEPTH},
                {cacerts, EncodedAuthoritativeCertificates},
-               {partial_chain, fun tls_certificate_validation_chain:find_authority/1},
+               {partial_chain, fun tls_certificate_chain:find_authority/1},
                {verify_fun, CertificateVerificationFun}
                | HostnameCheckOptions],
               OptionOverrides)

@@ -18,7 +18,7 @@
 %% FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 %% DEALINGS IN THE SOFTWARE.
 
--module(validation_SUITE).
+-module(tls_certificate_check_SUITE).
 -compile(export_all).
 
 -include_lib("eunit/include/eunit.hrl").
@@ -62,7 +62,7 @@ group_test_cases(GroupName) ->
 init_per_suite(Config) ->
     {ok, _} = application:ensure_all_started(inets),
     {ok, _} = application:ensure_all_started(ssl),
-    {ok, _} = application:ensure_all_started(tls_certificate_validation),
+    {ok, _} = application:ensure_all_started(tls_certificate_check),
     Config.
 
 end_per_suite(_Config) ->
@@ -73,11 +73,11 @@ init_per_group(GroupName, Config) ->
         hostname_target ->
             Config;
         https_url_target ->
-            [{validation_target, https_url} | Config];
+            [{check_target, https_url} | Config];
         http_url_target ->
-            [{validation_target, http_url} | Config];
+            [{check_target, http_url} | Config];
         custom_chain_depth_limit ->
-            [{validation_overrides, [{depth, 50}]} | Config]
+            [{check_overrides, [{depth, 50}]} | Config]
     end.
 
 end_per_group(_GroupName, _Config) ->
@@ -177,13 +177,13 @@ ssl_app_version() ->
     lists:map(fun binary_to_integer/1, Parts).
 
 httpc_http_opts(Config, Host) ->
-    ValidationTarget = validation_target(Config, Host),
-    TLSValidationOpts = tls_validation_opts(Config, ValidationTarget),
-    assert_validation_overrides_were_kept(Config, TLSValidationOpts),
-    [{ssl, TLSValidationOpts}].
+    CheckTarget = check_target(Config, Host),
+    CheckOpts = tls_check_opts(Config, CheckTarget),
+    assert_check_overrides_were_kept(Config, CheckOpts),
+    [{ssl, CheckOpts}].
 
-validation_target(Config, Host) ->
-    case proplists:get_value(validation_target, Config) of
+check_target(Config, Host) ->
+    case proplists:get_value(check_target, Config) of
         https_url ->
             "https://" ++ Host;
         http_url ->
@@ -192,18 +192,18 @@ validation_target(Config, Host) ->
             Host
     end.
 
-tls_validation_opts(Config, ValidationTarget) ->
-    case proplists:get_value(validation_overrides, Config) of
+tls_check_opts(Config, CheckTarget) ->
+    case proplists:get_value(check_overrides, Config) of
         Overrides when is_list(Overrides) ->
-            tls_certificate_validation:options(ValidationTarget, Overrides);
+            tls_certificate_check:options(CheckTarget, Overrides);
         _ ->
-            tls_certificate_validation:options(ValidationTarget)
+            tls_certificate_check:options(CheckTarget)
     end.
 
-assert_validation_overrides_were_kept(Config, TLSValidationOpts) ->
-    Overrides = proplists:get_value(validation_overrides, Config, []),
+assert_check_overrides_were_kept(Config, CheckOpts) ->
+    Overrides = proplists:get_value(check_overrides, Config, []),
     lists:foreach(
       fun (Opt) ->
-              ?assert( lists:member(Opt, TLSValidationOpts) )
+              ?assert( lists:member(Opt, CheckOpts) )
       end,
       Overrides).

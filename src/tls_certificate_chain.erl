@@ -19,7 +19,7 @@
 %% DEALINGS IN THE SOFTWARE.
 
 %% @private
--module(tls_certificate_validation_chain).
+-module(tls_certificate_chain).
 
 -include_lib("public_key/include/OTP-PUB-KEY.hrl").
 
@@ -43,7 +43,7 @@
 
 -type certificate() :: #'OTPCertificate'{}.
 -type certificate_pair() :: {certificate(), encoded_certificate()}.
--type authoritative_pkis() :: #{tls_certificate_validation_pki:t() => exists}.
+-type authoritative_pkis() :: #{tls_certificate_pki:t() => exists}.
 
 %% ------------------------------------------------------------------
 %% API Function Definitions
@@ -72,7 +72,7 @@ authoritative_pkis() ->
       lists:foldl(
         fun (EncodedAuthoritativeCertificate, Acc) ->
                 AuthoritativeCertificate = decode_certificate(EncodedAuthoritativeCertificate),
-                AuthoritativePKI = tls_certificate_validation_pki:extract(AuthoritativeCertificate),
+                AuthoritativePKI = tls_certificate_pki:extract(AuthoritativeCertificate),
                 maps:put(AuthoritativePKI, exists, Acc)
         end,
         #{}, authorities())
@@ -97,7 +97,7 @@ decode_certificate(EncodedCertificate) ->
            unknown_ca.
 find_authority_recur([Pair | NextPairs], AuthoritativePKIs) ->
     {Certificate, EncodedCertificate} = Pair,
-    CertificatePKI = tls_certificate_validation_pki:extract(Certificate),
+    CertificatePKI = tls_certificate_pki:extract(Certificate),
     case maps:is_key(CertificatePKI, AuthoritativePKIs) of
         true ->
             {trusted_ca, EncodedCertificate};

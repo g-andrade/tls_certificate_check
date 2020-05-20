@@ -19,7 +19,7 @@
 %% DEALINGS IN THE SOFTWARE.
 
 %% @private
--module(tls_certificate_validation_pki).
+-module(tls_certificate_pki).
 
 -include_lib("public_key/include/OTP-PUB-KEY.hrl").
 
