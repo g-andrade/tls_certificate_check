@@ -1,6 +1,6 @@
 {application, tls_certificate_check,
  [{description, "TLS/SSL certificate verification for humans"},
-  {vsn, "0.1.0"}, % FIXME
+  {vsn, git},
   {registered, []},
   {applications,
    [kernel,
