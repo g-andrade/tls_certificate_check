@@ -17,5 +17,7 @@
   {modules, []},
 
   {licenses, ["MIT"]},
-  {links, []}
+  {links, [{"GitHub", "https://github.com/g-andrade/tls_certificate_check"},
+           {"GitLab", "https://gitlab.com/g-andrade/tls_certificate_check"}
+          ]}
  ]}.
