@@ -25,13 +25,11 @@
 %% ------------------------------------------------------------------
 
 -export(
-   [options/1,
-    options/2
+   [options/1
    ]).
 
 -ignore_xref(
-   [options/1,
-    options/2
+   [options/1
    ]).
 
 %% ------------------------------------------------------------------
@@ -72,22 +70,6 @@
              URL :: iodata(),
              Options :: [option()].
 options(Target) ->
-    options(Target, []).
-
-%% @doc Like `:options/1' but it allows the caller
-%% to override one or more options.
-%%
-%% <ul>
-%% <li>`Target' must be either a hostname or an HTTP URL, as `iodata()'</li>
-%% <li>`Overrides' must be a list of `option()' values</li>
-%% </ul>
--spec options(Target, Overrides) -> Options
-        when Target :: Hostname | URL,
-             Hostname :: iodata(),
-             URL :: iodata(),
-             Overrides :: [option()],
-             Options :: [option()].
-options(Target, Overrides) ->
     try target_to_hostname(Target) of
         Hostname ->
             EncodedAuthoritativeCertificates = tls_certificate_chain:authorities(),
@@ -96,17 +78,15 @@ options(Target, Overrides) ->
                                           CertificateVerificationFunOptions},
 
             HostnameCheckOptions = hostname_check_opts(),
-            merge_opts(
-              [{verify, verify_peer},
-               {depth, ?DEFAULT_MAX_CERTIFICATE_CHAIN_DEPTH},
-               {cacerts, EncodedAuthoritativeCertificates},
-               {partial_chain, fun tls_certificate_chain:find_authority/1},
-               {verify_fun, CertificateVerificationFun}
-               | HostnameCheckOptions],
-              Overrides)
+            [{verify, verify_peer},
+             {depth, ?DEFAULT_MAX_CERTIFICATE_CHAIN_DEPTH},
+             {cacerts, EncodedAuthoritativeCertificates},
+             {partial_chain, fun tls_certificate_chain:find_authority/1},
+             {verify_fun, CertificateVerificationFun}
+             | HostnameCheckOptions]
     catch
         http_target ->
-            Overrides
+            []
     end.
 
 %% ------------------------------------------------------------------
@@ -148,28 +128,3 @@ hostname_check_opts() ->
     MatchFun = public_key:pkix_verify_hostname_match_fun(Protocol),
     [{customize_hostname_check, [{match_fun, MatchFun}]}].
 -endif.
-
-merge_opts(BaseOptions, []) ->
-    % optimization
-    BaseOptions;
-merge_opts(BaseOptions, OptionsToMerge) ->
-    KeysToRemove = [option_key(Option) || Option <- OptionsToMerge],
-    ReversePurgedBaseOptions
-        = reverse_purged_base_opts_before_merge(BaseOptions, KeysToRemove),
-    lists:reverse(ReversePurgedBaseOptions, OptionsToMerge).
-
-reverse_purged_base_opts_before_merge(BaseOptions, KeysToRemove) ->
-    lists:foldl(
-      fun (Option, Acc) ->
-              Key = option_key(Option),
-              case lists:member(Key, KeysToRemove) of
-                  false -> [Option | Acc];
-                  true -> Acc
-              end
-      end,
-      [], BaseOptions).
-
-option_key({Key, _}) ->
-    Key;
-option_key(Key) when is_atom(Key) ->
-    Key.

@@ -37,8 +37,7 @@ groups() ->
      || GroupName
         <- [hostname_target,
             https_url_target,
-            http_url_target,
-            custom_chain_depth_limit]].
+            http_url_target]].
 
 group_definition(GroupName) ->
     {GroupName, [parallel], group_test_cases(GroupName)}.
@@ -75,9 +74,7 @@ init_per_group(GroupName, Config) ->
         https_url_target ->
             [{check_target, https_url} | Config];
         http_url_target ->
-            [{check_target, http_url} | Config];
-        custom_chain_depth_limit ->
-            [{check_overrides, [{depth, 50}]} | Config]
+            [{check_target, http_url} | Config]
     end.
 
 end_per_group(_GroupName, _Config) ->
@@ -178,8 +175,7 @@ ssl_app_version() ->
 
 httpc_http_opts(Config, Host) ->
     CheckTarget = check_target(Config, Host),
-    CheckOpts = tls_check_opts(Config, CheckTarget),
-    assert_check_overrides_were_kept(Config, CheckOpts),
+    CheckOpts = tls_certificate_check:options(CheckTarget),
     [{ssl, CheckOpts}].
 
 check_target(Config, Host) ->
@@ -191,19 +187,3 @@ check_target(Config, Host) ->
         _ ->
             Host
     end.
-
-tls_check_opts(Config, CheckTarget) ->
-    case proplists:get_value(check_overrides, Config) of
-        Overrides when is_list(Overrides) ->
-            tls_certificate_check:options(CheckTarget, Overrides);
-        _ ->
-            tls_certificate_check:options(CheckTarget)
-    end.
-
-assert_check_overrides_were_kept(Config, CheckOpts) ->
-    Overrides = proplists:get_value(check_overrides, Config, []),
-    lists:foreach(
-      fun (Opt) ->
-              ?assert( lists:member(Opt, CheckOpts) )
-      end,
-      Overrides).
