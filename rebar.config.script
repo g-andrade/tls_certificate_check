@@ -36,7 +36,7 @@ of
                        | Acc];
                   ({parse_trans, Version}, Acc) ->
                       [{2, {parse_trans, ".*", {git, "https://github.com/uwiger/parse_trans.git",
-                                                {tag, "3.3.0"}}}}
+                                                {tag, Version}}}}
                        | Acc];
                   ({ssl_verify_fun, Version}, Acc) ->
                       [{3, {ssl_verify_fun, ".*", {git, "https://github.com/deadtrickster/ssl_verify_fun.erl.git",
