@@ -48,7 +48,7 @@ test: $(REBAR3)
 
 cover: test
 
-shell: export ERL_FLAGS ?= +pc unicode
+shell: export ERL_FLAGS = +pc unicode
 shell:
 	@$(REBAR3) as development shell
 
