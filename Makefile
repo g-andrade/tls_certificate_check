@@ -56,7 +56,7 @@ doc: $(REBAR3)
 	@$(REBAR3) edoc
 
 README.md: doc
-	# non-portable dirty hack follows (pandoc 2.1.1 used)
+	# non-portable dirty hack follows (pandoc 2.11.0.4 used)
 	# gfm: "github-flavoured markdown"
 	@pandoc --from html --to gfm doc/overview-summary.html -o README.md
 	@tail -n +11 <"README.md"   >"README.md_"
