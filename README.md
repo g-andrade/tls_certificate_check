@@ -1,7 +1,7 @@
 # tls\_certificate\_check
 
 [![](https://img.shields.io/hexpm/v/tls_certificate_check.svg?style=flat)](https://hex.pm/packages/tls_certificate_check)
-[![](https://travis-ci.com/g-andrade/tls_certificate_check.png?branch=master)](https://travis-ci.com/g-andrade/tls_certificate_check)
+[![](https://github.com/g-andrade/tls_certificate_check/workflows/build/badge.svg)](https://github.com/g-andrade/tls_certificate_check/actions?query=workflow%3Abuild)
 
 `tls_certificate_check` is a library for Erlang/OTP and Elixir intended
 on easing the establishement of [more
