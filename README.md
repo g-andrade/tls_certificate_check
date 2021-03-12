@@ -59,7 +59,7 @@ mix.exs
   defp deps do
     [
       # [...]
-      {:tls_certificate_check, "1.1.1"}
+      {:tls_certificate_check, "1.2.0"}
     ]
   end
 ```
