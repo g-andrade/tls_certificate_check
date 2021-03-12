@@ -96,7 +96,8 @@ parse_encoded_authorities(UpdateArgs, EncodedAuthorities) ->
             #{authorities_file_path := AuthoritiesFilePath} = UpdateArgs,
             fail("No authoritative certificates found in \"~ts\"", [AuthoritiesFilePath])
     catch
-        Class:Reason:Stacktrace ->
+        Class:Reason ->
+            Stacktrace = erlang:get_stacktrace(),
             #{authorities_file_path := AuthoritiesFilePath} = UpdateArgs,
             fail("Could not parse authoritative certificates in \"~ts\":~n~p",
                  [AuthoritiesFilePath, {Class, Reason, Stacktrace}])
