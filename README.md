@@ -26,7 +26,7 @@ rebar.config
 ``` erlang
 {deps,
  [% [...]
-  {tls_certificate_check, "1.1.1"}
+  {tls_certificate_check, "1.2.0"}
   ]}.
 ```
 

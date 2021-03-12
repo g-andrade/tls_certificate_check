@@ -29,7 +29,7 @@ chains</a>.
 <pre lang="erlang" class="erlang">
 {deps,
  [% [...]
-  {tls_certificate_check, "1.1.1"}
+  {tls_certificate_check, "1.2.0"}
   ]}.
 </pre>
 </details>
