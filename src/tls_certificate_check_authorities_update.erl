@@ -48,6 +48,8 @@
 %% API Function Definitions
 %% ------------------------------------------------------------------
 
+-if(OTP_RELEASE >= 23).
+
 -spec main([string(), ...]) -> no_return().
 main([AuthoritiesFilePath, AuthoritiesSource, OutputModuleFilePath, ChangelogFilePath]) ->
     OutputModuleName = output_module_name(OutputModuleFilePath),
@@ -60,9 +62,20 @@ main([AuthoritiesFilePath, AuthoritiesSource, OutputModuleFilePath, ChangelogFil
 main(Args) ->
     fail("Received ~b arg(s) instead of 4", [length(Args)]).
 
+-else.
+
+-spec main([string(), ...]) -> no_return().
+main(_) ->
+    io:format(standard_error, "[error] This script requires Erlang/OTP 23+", []),
+    erlang:halt(?FAILURE_STATUS_CODE).
+
+-endif. % if(OTP_RELEASE >= 23).
+
 %% ------------------------------------------------------------------
 %% Internal Function Definitions
 %% ------------------------------------------------------------------
+
+-if(OTP_RELEASE >= 23).
 
 output_module_name(OutputModuleFilePath) ->
     IoData = filename:basename(OutputModuleFilePath, ".erl"),
@@ -458,5 +471,7 @@ halt_(Status) ->
     % having "no local return" all over this module.
     OpaqueFunctionName = binary_to_term( term_to_binary(halt) ),
     erlang:OpaqueFunctionName(Status).
+
+-endif. % if(OTP_RELEASE >= 23).
 
 -endif. % ifdef(UPDATING_AUTHORITIES).
