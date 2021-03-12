@@ -21,7 +21,7 @@
 %% @private
 -module(tls_certificate_check_authorities_update).
 
--ifdef(UPDATING_AUTHORITIES).
+-ifdef(UPDATER_ENABLED).
 
 -include_lib("kernel/include/file.hrl").
 -include_lib("public_key/include/OTP-PUB-KEY.hrl").
@@ -48,7 +48,7 @@
 %% API Function Definitions
 %% ------------------------------------------------------------------
 
--if(OTP_RELEASE >= 23).
+-ifdef(UPDATER_SUPPORTED).
 
 -spec main([string(), ...]) -> no_return().
 main([AuthoritiesFilePath, AuthoritiesSource, OutputModuleFilePath, ChangelogFilePath]) ->
@@ -69,13 +69,13 @@ main(_) ->
     io:format(standard_error, "[error] This script requires Erlang/OTP 23+", []),
     erlang:halt(?FAILURE_STATUS_CODE).
 
--endif. % if(OTP_RELEASE >= 23).
+-endif. % ifdef(UPDATER_SUPPORTED).
 
 %% ------------------------------------------------------------------
 %% Internal Function Definitions
 %% ------------------------------------------------------------------
 
--if(OTP_RELEASE >= 23).
+-ifdef(UPDATER_SUPPORTED).
 
 output_module_name(OutputModuleFilePath) ->
     IoData = filename:basename(OutputModuleFilePath, ".erl"),
@@ -471,6 +471,6 @@ halt_(Status) ->
     OpaqueFunctionName = binary_to_term( term_to_binary(halt) ),
     erlang:OpaqueFunctionName(Status).
 
--endif. % if(OTP_RELEASE >= 23).
+-endif. % ifdef(UPDATER_SUPPORTED).
 
--endif. % ifdef(UPDATING_AUTHORITIES).
+-endif. % ifdef(UPDATER_ENABLED).
