@@ -11,12 +11,10 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 - [certificate authority] NAVER Global Root Certification Authority
 
-
 ### Changed
 
 - module with bundled CAs to latest as of 2021/01/19, 04:12 UTC
 (source: https://curl.se/ca/cacert.pem)
-
 
 ### Removed
 

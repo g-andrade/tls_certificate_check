@@ -330,7 +330,8 @@ updated_changelog_at_position(UpdateArgs, Changelog, LastReleasePos,
                "## [~ts] - ~4..0b-~2..0b-~2..0b\n"
                "~ts"
                "~ts"
-               "~ts",
+               "~ts"
+               "\n",
                [NewVersionString,
                 CurrentYear, CurrentMonth, CurrentDay,
                 changelog_additions_string(Additions),
@@ -348,8 +349,7 @@ changelog_additions_string(Additions) ->
       "\n"
       "### Added\n"
       "\n"
-      "~ts"
-      "\n",
+      "~ts",
       [[certificate_changelog_string(Addition) || Addition <- Additions]]
      ).
 
@@ -362,8 +362,7 @@ changelog_changes_string(UpdateArgs) ->
       "### Changed\n"
       "\n"
       "- module with bundled CAs to latest as of ~ts\n"
-      "(source: ~ts)\n"
-      "\n",
+      "(source: ~ts)\n",
       [format_date(AuthoritiesDate), AuthoritiesSource]).
 
 changelog_removals_string([]) ->
@@ -373,8 +372,7 @@ changelog_removals_string(Removals) ->
       "\n"
       "### Removed\n"
       "\n"
-      "~ts"
-      "\n",
+      "~ts",
       [[certificate_changelog_string(Removal) || Removal <- Removals]]
      ).
 
