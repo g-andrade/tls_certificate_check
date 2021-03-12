@@ -10,8 +10,8 @@ HTTPS connections in ordinary setups.
 
 Other kinds of TLS/SSL connections may also benefit from it.
 
-It wraps [certifi](https://github.com/certifi/erlang-certifi), a
-certificate authority bundle, together with
+It wraps [curl's CA certificates](https://curl.se/docs/caextract.html),
+extracted from Mozilla, together with
 [ssl\_verify\_fun](https://github.com/deadtrickster/ssl_verify_fun.erl)
 plus all the the boilerplate code required for validating [disoderly
 certificate chains](https://github.com/elixir-mint/mint/issues/95).
