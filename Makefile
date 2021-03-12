@@ -23,7 +23,10 @@ AUTHORITIES_MODULE = src/tls_certificate_check_authorities.erl
 	test cover \
 	shell \
 	doc \
-	publish
+	publish \
+	update-authorities \
+	invoke-authorities-updater \
+	build-authorities-updater
 
 .NOTPARALLEL: check update-authorities
 
