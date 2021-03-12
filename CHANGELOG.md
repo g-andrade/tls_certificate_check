@@ -9,6 +9,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ### Added
 
+- elements for easily updating bundled CAs
 - [certificate authority] NAVER Global Root Certification Authority
 
 ### Changed
@@ -18,6 +19,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ### Removed
 
+- [dependency] `certifi`
+- [dependency] `parse_trans`
 - [certificate authority] thawte primary root ca - g2
 - [certificate authority] geotrust global ca
 - [certificate authority] geotrust primary certification authority
