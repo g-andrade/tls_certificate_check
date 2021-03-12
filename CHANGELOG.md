@@ -5,6 +5,37 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
+## [1.2.0] - 2021-03-12
+
+### Added
+
+- elements for easily updating bundled CAs
+- [certificate authority] NAVER Global Root Certification Authority
+
+### Changed
+
+- module with bundled CAs to latest as of 2021/01/19, 04:12 UTC
+(source: https://curl.se/ca/cacert.pem)
+
+### Removed
+
+- [dependency] `certifi`
+- [dependency] `parse_trans`
+- [certificate authority] thawte primary root ca - g2
+- [certificate authority] geotrust global ca
+- [certificate authority] geotrust primary certification authority
+- [certificate authority] verisign class 3 public primary certification authority - g4
+- [certificate authority] geotrust primary certification authority - g3
+- [certificate authority] thawte primary root ca
+- [certificate authority] thawte primary root ca - g3
+- [certificate authority] verisign class 3 public primary certification authority - g5
+- [certificate authority] geotrust universal ca
+- [certificate authority] geotrust universal ca 2
+
+### Fixed
+
+- misuse of `tls_certificate_` namespace (all modules start with `tls_certificate_check` now)
+
 ## [1.1.1] - 2020-12-08
 
 ### Fixed

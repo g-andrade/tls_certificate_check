@@ -31,15 +31,7 @@ of
         OverriddenErlOpts = ErlOpts -- [warn_missing_spec],
         OverriddenSortableDeps =
             lists:foldr(
-              fun ({certifi, Version}, Acc) ->
-                      [{1, {certifi, ".*", {git, "https://github.com/certifi/erlang-certifi.git",
-                                            {tag, Version}}}}
-                       | Acc];
-                  ({parse_trans, Version}, Acc) ->
-                      [{2, {parse_trans, ".*", {git, "https://github.com/uwiger/parse_trans.git",
-                                                {tag, Version}}}}
-                       | Acc];
-                  ({ssl_verify_fun, Version}, Acc) ->
+              fun ({ssl_verify_fun, Version}, Acc) ->
                       [{3, {ssl_verify_fun, ".*", {git, "https://github.com/deadtrickster/ssl_verify_fun.erl.git",
                                                    {tag, Version}}}}
                        | Acc];
