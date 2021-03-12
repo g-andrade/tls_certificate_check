@@ -13,8 +13,8 @@ more secure</a> HTTPS connections in ordinary setups.
 
 Other kinds of TLS/SSL connections may also benefit from it.
 
-It wraps <a target="_parent" href="https://curl.se/docs/caextract.html">curl's CA certificates</a>,
-extracted from Mozilla, together with
+It wraps <a target="_parent" href="https://curl.se/docs/caextract.html">Mozilla's CA certificate store</a>,
+as extracted by `curl', together with
 <a target="_parent" href="https://github.com/deadtrickster/ssl_verify_fun.erl">ssl_verify_fun</a>
 plus all the the boilerplate code required for validating
 <a target="_parent" href="https://github.com/elixir-mint/mint/issues/95">disoderly certificate

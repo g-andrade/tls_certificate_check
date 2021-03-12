@@ -10,8 +10,9 @@ HTTPS connections in ordinary setups.
 
 Other kinds of TLS/SSL connections may also benefit from it.
 
-It wraps [curl's CA certificates](https://curl.se/docs/caextract.html),
-extracted from Mozilla, together with
+It wraps [Mozilla's CA certificate
+store](https://curl.se/docs/caextract.html), as extracted by `curl`,
+together with
 [ssl\_verify\_fun](https://github.com/deadtrickster/ssl_verify_fun.erl)
 plus all the the boilerplate code required for validating [disoderly
 certificate chains](https://github.com/elixir-mint/mint/issues/95).
