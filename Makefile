@@ -14,6 +14,10 @@ ifeq ($(REBAR3),)
 	REBAR3 = $(CURDIR)/rebar3
 endif
 
+AUTHORITIES_URL = https://curl.se/ca/cacert.pem
+AUTHORITIES_FILE = priv/cacerts.pem
+AUTHORITIES_MODULE = src/tls_certificate_check_authorities.erl
+
 .PHONY: all build clean \
 	check dialyzer xref \
 	test cover \
@@ -21,7 +25,7 @@ endif
 	doc \
 	publish
 
-.NOTPARALLEL: check
+.NOTPARALLEL: check update-authorities
 
 all: build
 
@@ -38,10 +42,10 @@ clean: $(REBAR3)
 check: dialyzer xref
 
 dialyzer: $(REBAR3)
-	@$(REBAR3) dialyzer
+	@$(REBAR3) as update_authorities dialyzer
 
 xref: $(REBAR3)
-	@$(REBAR3) xref
+	@$(REBAR3) as update_authorities xref
 
 test: $(REBAR3)
 	@$(REBAR3) do ct, cover
@@ -67,3 +71,23 @@ README.md: doc
 publish: $(REBAR3)
 	@$(REBAR3) as publish hex publish
 	@$(REBAR3) as publish hex docs
+
+update-authorities: download-latest-authorities
+update-authorities: invoke-authorities-updater
+
+download-latest-authorities:
+	@curl \
+		--cacert priv/cacerts.pem \
+		-o "$(AUTHORITIES_FILE)" \
+		--remote-time \
+		"$(AUTHORITIES_URL)"
+
+invoke-authorities-updater: build-authorities-updater
+	@./_build/update_authorities/bin/tls_certificate_check_authorities_update \
+		"$(AUTHORITIES_FILE)" \
+		"$(AUTHORITIES_URL)" \
+		"$(AUTHORITIES_MODULE)" \
+		"CHANGELOG.md"
+
+build-authorities-updater:
+	@$(REBAR3) as update_authorities escriptize

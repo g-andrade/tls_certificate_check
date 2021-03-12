@@ -19,7 +19,7 @@
 %% DEALINGS IN THE SOFTWARE.
 
 %% @private
--module(tls_certificate_pki).
+-module(tls_certificate_check_chain).
 
 -include_lib("public_key/include/OTP-PUB-KEY.hrl").
 
@@ -28,22 +28,26 @@
 %% ------------------------------------------------------------------
 
 -export(
-   [extract/1
+   [find_authority/1
    ]).
-
-%% ------------------------------------------------------------------
-%% Record and Type Definitions
-%% ------------------------------------------------------------------
-
--type t() :: term().
--export_type([t/0]).
 
 %% ------------------------------------------------------------------
 %% API Function Definitions
 %% ------------------------------------------------------------------
 
--spec extract(#'OTPCertificate'{}) -> t().
-extract(Certificate) ->
+-spec find_authority([public_key:der_encoded()])
+        -> {trusted_ca, public_key:der_encoded()}
+           | unknown_ca.
+find_authority([EncodedCertificate | NextEncodedCertificates]) ->
+    Certificate = public_key:pkix_decode_cert(EncodedCertificate, otp),
     #'OTPCertificate'{tbsCertificate = TbsCertificate} = Certificate,
-    #'OTPTBSCertificate'{subjectPublicKeyInfo = PKI} = TbsCertificate,
-    PKI.
+    #'OTPTBSCertificate'{subjectPublicKeyInfo = PublicKeyInfo} = TbsCertificate,
+
+    case tls_certificate_check_authorities:is_trusted_public_key(PublicKeyInfo) of
+        true ->
+            {trusted_ca, EncodedCertificate};
+        false ->
+            find_authority(NextEncodedCertificates)
+    end;
+find_authority([]) ->
+    unknown_ca.
