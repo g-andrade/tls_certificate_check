@@ -15,7 +15,7 @@ ifeq ($(REBAR3),)
 endif
 
 AUTHORITIES_URL = https://curl.se/ca/cacert.pem
-AUTHORITIES_FILE = priv/cacerts.pem
+AUTHORITIES_FILE = tmp/cacerts.pem
 AUTHORITIES_MODULE = src/tls_certificate_check_authorities.erl
 
 .PHONY: all build clean \
@@ -80,7 +80,6 @@ update-authorities: invoke-authorities-updater
 
 download-latest-authorities:
 	@curl \
-		--cacert priv/cacerts.pem \
 		-o "$(AUTHORITIES_FILE)" \
 		--remote-time \
 		"$(AUTHORITIES_URL)"
