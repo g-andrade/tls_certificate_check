@@ -79,7 +79,7 @@ The API reference can be found on
 
 ### Tested setup
 
-  - Erlang/OTP 19 or newer
+  - Erlang/OTP 21.2 or newer
   - rebar3
 
 ### License

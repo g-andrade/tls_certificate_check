@@ -86,7 +86,7 @@ The API reference can be found on
 <h3>Tested setup</h3>
 
 <ul>
-<li>Erlang/OTP 19 or newer</li>
+<li>Erlang/OTP 21.2 or newer</li>
 <li>rebar3</li>
 </ul>
 
