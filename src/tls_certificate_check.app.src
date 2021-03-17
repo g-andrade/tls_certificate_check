@@ -2,6 +2,7 @@
  [{description, "TLS/SSL certificate verification for humans"},
   {vsn, git},
   {registered, []},
+  {mod, {tls_certificate_check_app, []}},
   {applications,
    [kernel,
     inets, % remove as soon as `NO_URI_STRING' is no longer needed

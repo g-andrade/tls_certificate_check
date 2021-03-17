@@ -5,13 +5,25 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
-### [Unreleased]
+## [Unreleased]
+
+### Changed
+
+- list of authoritative certificates, from hardcoded to one that's generated on application boot
+  and stored on `persistent_term`
+- set of trusted public keys, from hardcoded to one that's generated on application boot
+  and stored on `persistent_term`
 
 ### Removed
 
 - compatibility with OTP 19
 - compatibility with OTP 20
 - compatibility with OTP 21.0 and 21.1
+- priv/cacerts.pem
+
+### Fixed
+
+- unwarranted and risky hardcoding of record values
 
 ## [1.2.0] - 2021-03-12
 

@@ -25,6 +25,7 @@
 
 -include_lib("kernel/include/file.hrl").
 -include_lib("public_key/include/OTP-PUB-KEY.hrl").
+-include_lib("stdlib/include/assert.hrl").
 
 %% ------------------------------------------------------------------
 %% API Function Exports
@@ -95,66 +96,48 @@ read_authorities_date(#{authorities_file_path := AuthoritiesFilePath} = UpdateAr
 read_encoded_authorities(#{authorities_file_path := AuthoritiesFilePath} = UpdateArgs) ->
     case file:read_file(AuthoritiesFilePath) of
         {ok, EncodedAuthorities} ->
-            parse_encoded_authorities(UpdateArgs, EncodedAuthorities);
+            ExtendedUpdateArgs = UpdateArgs#{encoded_authorities => EncodedAuthorities},
+            parse_encoded_authorities(ExtendedUpdateArgs);
         {error, Reason} ->
             fail("Could not read certificate authorities file: ~p (path: \"~ts\")",
                  [Reason, AuthoritiesFilePath])
     end.
 
-parse_encoded_authorities(UpdateArgs, EncodedAuthorities) ->
-    try public_key:pem_decode(EncodedAuthorities) of
-        [_|_] = AuthoritativeCertificates ->
-            extract_authoriative_certificate_values(UpdateArgs, AuthoritativeCertificates);
-        [] ->
+parse_encoded_authorities(#{encoded_authorities := EncodedAuthorities} = UpdateArgs) ->
+    case tls_certificate_check_util:parse_encoded_authorities(EncodedAuthorities) of
+        {ok, AuthoritativeCertificateValues} ->
+            ExtendedUpdateArgs = UpdateArgs#{authoritative_certificate_values
+                                             => AuthoritativeCertificateValues},
+            maybe_produce_code(ExtendedUpdateArgs);
+
+        {error, no_authoritative_certificates_found} ->
             #{authorities_file_path := AuthoritiesFilePath} = UpdateArgs,
-            fail("No authoritative certificates found in \"~ts\"", [AuthoritiesFilePath])
-    catch
-        Class:Reason:Stacktrace ->
+            fail("No authoritative certificates found in \"~ts\"", [AuthoritiesFilePath]);
+
+        {error, {failed_to_decode, Reason}} ->
             #{authorities_file_path := AuthoritiesFilePath} = UpdateArgs,
             fail("Could not parse authoritative certificates in \"~ts\":~n~p",
-                 [AuthoritiesFilePath, {Class, Reason, Stacktrace}])
-    end.
+                 [AuthoritiesFilePath, Reason]);
 
-extract_authoriative_certificate_values(UpdateArgs, AuthoritativeCertificates) ->
-    case authoritative_certificate_values(AuthoritativeCertificates) of
-        {ok, AuthoritativeCertificateValues} ->
-            maybe_produce_code(UpdateArgs, AuthoritativeCertificateValues);
         {error, Reason} ->
             fail("Could not extract authoritative certificate value: ~p", [Reason])
     end.
 
-authoritative_certificate_values(AuthoritativeCertificates) ->
-    authoritative_certificate_values_recur(AuthoritativeCertificates, []).
-
-authoritative_certificate_values_recur([Head | Next], ValuesAcc) ->
-    case Head of
-        {'Certificate', DerEncoded, not_encrypted} ->
-            UpdatedValuesAcc = [DerEncoded | ValuesAcc],
-            authoritative_certificate_values_recur(Next, UpdatedValuesAcc);
-        {'Certificate', _, _} ->
-            {error, {certificate_encrypted, Head}};
-        Other ->
-            {error, {unexpected_certificate_format, Other}}
-    end;
-authoritative_certificate_values_recur([], ValuesAcc) ->
-    Values = lists:reverse(ValuesAcc),
-    {ok, Values}.
-
-maybe_produce_code(UpdateArgs, AuthoritativeCertificateValues) ->
+maybe_produce_code(UpdateArgs) ->
     CurrentCodeIoData = current_code(UpdateArgs),
-    NewCodeIoData = generate_code(UpdateArgs, AuthoritativeCertificateValues),
+    NewCodeIoData = generate_code(UpdateArgs),
     case not string:equal(NewCodeIoData, CurrentCodeIoData, _IgnoreCase = false) of
         true ->
-            produce_code(UpdateArgs, AuthoritativeCertificateValues, NewCodeIoData);
+            produce_code(UpdateArgs, NewCodeIoData);
         false ->
             dismiss("No changes to generated code", [])
     end.
 
 produce_code(#{output_module_file_path := OutputModuleFilePath} = UpdateArgs,
-             AuthoritativeCertificateValues, NewCodeIoData)
+             NewCodeIoData)
 ->
     {NumberOfAdditions, NumberOfRemovals, UpdatedChangelog, NewVersionString}
-        = compute_differences(UpdateArgs, AuthoritativeCertificateValues),
+        = compute_differences(UpdateArgs),
 
     case file:write_file(OutputModuleFilePath, NewCodeIoData) of
         ok ->
@@ -177,11 +160,14 @@ current_code(#{output_module_file_path := OutputModuleFilePath}) ->
 
 generate_code(#{authorities_source := AuthoritiesSource,
                 authorities_date := AuthoritiesDate,
-                output_module_name := OutputModuleName}, AuthoritativeCertificateValues) ->
+                encoded_authorities := EncodedAuthorities,
+                output_module_name := OutputModuleName}) ->
 
     {{CurrentYear, _, _}, {_, _, _}} = calendar:local_time(),
     CopyrightYearString = copyright_year_string(CurrentYear),
-    AuthoritativePKIs = authoritative_pkis(AuthoritativeCertificateValues),
+    % AuthoritativePKIs = authoritative_pkis(AuthoritativeCertificateValues),
+    EncodedAuthoritiesFormattedString = format_encoded_authorities(_Indentation = "    ",
+                                                                   EncodedAuthorities),
 
     io_lib:format(
       "%% Copyright (c) ~s Guilherme Andrade\n"
@@ -207,8 +193,8 @@ generate_code(#{authorities_source := AuthoritiesSource,
       "%% @private\n"
       "-module(~p).\n"
       "\n"
-      "-include_lib(\"public_key/include/OTP-PUB-KEY.hrl\").\n"
-      "\n"
+      % "-include_lib(\"public_key/include/OTP-PUB-KEY.hrl\").\n"
+      % "\n"
       "%% Automatically generated; do not edit.\n"
       "%%\n"
       "%% Source: ~ts\n"
@@ -219,29 +205,23 @@ generate_code(#{authorities_source := AuthoritiesSource,
       "%% ------------------------------------------------------------------\n"
       "\n"
       "-export(\n"
-      "    [list/0,\n"
-      "     is_trusted_public_key/1\n"
+      "    [encoded_list/0\n"
       "     ]).\n"
       "\n"
       "%% ------------------------------------------------------------------\n"
       "%% API Function Definitions\n"
       "%% ------------------------------------------------------------------\n"
       "\n"
-      "-spec list() -> [public_key:der_encoded(), ...].\n"
-      "list() ->\n"
-      "    ~p.\n"
-      "\n"
-      "-spec is_trusted_public_key(#'OTPSubjectPublicKeyInfo'{}) -> boolean().\n"
-      "is_trusted_public_key(#'OTPSubjectPublicKeyInfo'{} = PublicKeyInfo) ->\n"
-      "    maps:is_key(PublicKeyInfo,\n"
-      "                ~p).",
+      "-dialyzer({nowarn_function, encoded_list/0}).\n"
+      "-spec encoded_list() -> binary().\n"
+      "encoded_list() ->\n"
+      "~ts",
 
       [CopyrightYearString,
        OutputModuleName,
        AuthoritiesSource,
        format_date(AuthoritiesDate),
-       AuthoritativeCertificateValues,
-       AuthoritativePKIs]).
+       EncodedAuthoritiesFormattedString]).
 
 copyright_year_string(CurrentYear)
   when CurrentYear > 2021 ->
@@ -250,23 +230,45 @@ copyright_year_string(CurrentYear)
   when CurrentYear =:= 2021 ->
     "2021".
 
-authoritative_pkis(AuthoritativeCertificateValues) ->
-    lists:foldl(
-      fun (CertificateValue, Acc) ->
-              DecodedCertificateValue = public_key:pkix_decode_cert(CertificateValue, otp),
-              #'OTPCertificate'{tbsCertificate = TbsCertificate} = DecodedCertificateValue,
-              #'OTPTBSCertificate'{subjectPublicKeyInfo = PKI} = TbsCertificate,
-              maps:put(PKI, exists, Acc)
+format_encoded_authorities(BaseIndentation, EncodedAuthorities) ->
+    AllLines = string:split(EncodedAuthorities, "\n", all),
+    {Lines, [<<>>]} = lists:split(length(AllLines) - 1, AllLines),
+    NumberOfLines = length(Lines),
+    LineIndices = lists:seq(1, NumberOfLines),
+
+    lists:zipwith(
+      fun (Line, Index) ->
+              BinaryLine = unicode:characters_to_binary([Line, $\n]),
+              FormattedLine = io_lib:format("~tp", [BinaryLine]),
+              Indentation
+                    = case Index =/= 1 of
+                          true -> [BaseIndentation, "  "];
+                          false -> [BaseIndentation, "<<"]
+                      end,
+              Punctuation
+                    = case Index =/= NumberOfLines of
+                          true  -> ",";
+                          false -> ">>."
+                      end,
+
+              case unicode:characters_to_list(FormattedLine) of
+                  "<<>>" ->
+                      io_lib:format("~s\"\\n\"~s\n", [Indentation, Punctuation]);
+
+                  "<<" ++ RestOfTheLine ->
+                      {LineData, ">>"} = lists:split(length(RestOfTheLine) - 2, RestOfTheLine),
+                      io_lib:format("~s~ts~s\n", [Indentation, LineData, Punctuation])
+              end
       end,
-      #{}, AuthoritativeCertificateValues).
+      Lines, LineIndices).
 
 format_date({{Year, Month, Day}, {Hour, Minute, _Second}}) ->
     io_lib:format("~4..0b/~2..0b/~2..0b, ~2..0b:~2..0b UTC",
                   [Year, Month, Day, Hour, Minute]).
 
-compute_differences(UpdateArgs, AuthoritativeCertificateValues) ->
+compute_differences(UpdateArgs) ->
     #{changelog_file_path := ChangelogFilePath} = UpdateArgs,
-    {Additions, Removals} = certificate_differences(UpdateArgs, AuthoritativeCertificateValues),
+    {Additions, Removals} = certificate_differences(UpdateArgs),
 
     case file:read_file(ChangelogFilePath) of
         {ok, Changelog} ->
@@ -280,7 +282,8 @@ compute_differences(UpdateArgs, AuthoritativeCertificateValues) ->
                  [Reason, ChangelogFilePath])
     end.
 
-certificate_differences(UpdateArgs, AuthoritativeCertificateValues) ->
+certificate_differences(#{authoritative_certificate_values
+                          := AuthoritativeCertificateValues} = UpdateArgs) ->
     PreviousAuthoritativeCertificateValues = previous_authoritative_certificate_values(UpdateArgs),
     Previous = ordsets:from_list(PreviousAuthoritativeCertificateValues),
     Current = ordsets:from_list(AuthoritativeCertificateValues),
@@ -466,7 +469,7 @@ dismiss(Fmt, Args) ->
     halt_(0).
 
 halt_(Status) ->
-    % Get Dialyzer to stop complaining about functions 
+    % Get Dialyzer to stop complaining about functions
     % having "no local return" all over this module.
     OpaqueFunctionName = binary_to_term( term_to_binary(halt) ),
     erlang:OpaqueFunctionName(Status).

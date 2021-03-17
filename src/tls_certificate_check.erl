@@ -72,7 +72,8 @@
 options(Target) ->
     try target_to_hostname(Target) of
         Hostname ->
-            EncodedAuthoritativeCertificates = tls_certificate_check_authorities:list(),
+            AuthoritativeCertificateValues
+                = tls_certificate_check_shared_state:authoritative_certificate_values(),
             CertificateVerificationFunOptions = [{check_hostname, Hostname}],
             CertificateVerificationFun = {fun ssl_verify_hostname:verify_fun/3,
                                           CertificateVerificationFunOptions},
@@ -80,8 +81,8 @@ options(Target) ->
             HostnameCheckOptions = hostname_check_opts(),
             [{verify, verify_peer},
              {depth, ?DEFAULT_MAX_CERTIFICATE_CHAIN_DEPTH},
-             {cacerts, EncodedAuthoritativeCertificates},
-             {partial_chain, fun tls_certificate_check_chain:find_authority/1},
+             {cacerts, AuthoritativeCertificateValues},
+             {partial_chain, fun tls_certificate_check_shared_state:find_trusted_authority/1},
              {verify_fun, CertificateVerificationFun}
              | HostnameCheckOptions]
     catch

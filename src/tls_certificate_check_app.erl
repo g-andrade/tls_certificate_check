@@ -1,4 +1,4 @@
-%% Copyright (c) 2020-2021 Guilherme Andrade
+%% Copyright (c) 2021 Guilherme Andrade
 %%
 %% Permission is hereby granted, free of charge, to any person obtaining a
 %% copy  of this software and associated documentation files (the "Software"),
@@ -19,35 +19,32 @@
 %% DEALINGS IN THE SOFTWARE.
 
 %% @private
--module(tls_certificate_check_chain).
-
--include_lib("public_key/include/OTP-PUB-KEY.hrl").
+-module(tls_certificate_check_app).
+-behaviour(application).
 
 %% ------------------------------------------------------------------
-%% API Function Exports
+%% application Function Exports
 %% ------------------------------------------------------------------
 
 -export(
-   [find_authority/1
+   [start/2,
+    stop/1
    ]).
 
 %% ------------------------------------------------------------------
-%% API Function Definitions
+%% application Function Definitions
 %% ------------------------------------------------------------------
 
--spec find_authority([public_key:der_encoded()])
-        -> {trusted_ca, public_key:der_encoded()}
-           | unknown_ca.
-find_authority([EncodedCertificate | NextEncodedCertificates]) ->
-    Certificate = public_key:pkix_decode_cert(EncodedCertificate, otp),
-    #'OTPCertificate'{tbsCertificate = TbsCertificate} = Certificate,
-    #'OTPTBSCertificate'{subjectPublicKeyInfo = PublicKeyInfo} = TbsCertificate,
+-spec start(term(), list()) -> {ok, pid()} | {error, term()}.
+start(_StartType, _StartArgs) ->
+    case tls_certificate_check_shared_state:init() of
+        ok ->
+            tls_certificate_check_sup:start_link();
+        {error, Reason} ->
+            {error, Reason}
+    end.
 
-    case tls_certificate_check_authorities:is_trusted_public_key(PublicKeyInfo) of
-        true ->
-            {trusted_ca, EncodedCertificate};
-        false ->
-            find_authority(NextEncodedCertificates)
-    end;
-find_authority([]) ->
-    unknown_ca.
+-spec stop(term()) -> ok.
+stop(_State) ->
+    _ = tls_certificate_check_shared_state:destroy(),
+    ok.
