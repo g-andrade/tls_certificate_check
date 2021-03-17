@@ -193,8 +193,6 @@ generate_code(#{authorities_source := AuthoritiesSource,
       "%% @private\n"
       "-module(~p).\n"
       "\n"
-      % "-include_lib(\"public_key/include/OTP-PUB-KEY.hrl\").\n"
-      % "\n"
       "%% Automatically generated; do not edit.\n"
       "%%\n"
       "%% Source: ~ts\n"
