@@ -21,6 +21,8 @@
 %% @private
 -module(tls_certificate_check_authorities).
 
+-on_load(maybe_update_shared_state/0).
+
 %% Automatically generated; do not edit.
 %%
 %% Source: https://curl.se/ca/cacert.pem
@@ -3271,3 +3273,13 @@ encoded_list() ->
       "I/hGoiLtk/bdmuYqh7GYVPEi92tF4+KOdh2ajcQGjTa3FPOdVGm3jjzVpG2Tgbet9r1ke8LJaDmg\n",
       "kpzNNIaRkPpkUZ3+/uul9XXeifdy\n",
       "-----END CERTIFICATE-----\n">>.
+
+%% ------------------------------------------------------------------
+%% Internal Function Definitions
+%% ------------------------------------------------------------------
+
+-spec maybe_update_shared_state() -> ok | {error, term()}.
+maybe_update_shared_state() ->
+    % For code swaps / release upgrades
+    EncodedCertificates = encoded_list(),
+    tls_certificate_check_shared_state_owner:maybe_update_shared_state(EncodedCertificates).

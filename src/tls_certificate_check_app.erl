@@ -37,14 +37,8 @@
 
 -spec start(term(), list()) -> {ok, pid()} | {error, term()}.
 start(_StartType, _StartArgs) ->
-    case tls_certificate_check_shared_state:init() of
-        ok ->
-            tls_certificate_check_sup:start_link();
-        {error, Reason} ->
-            {error, Reason}
-    end.
+    tls_certificate_check_sup:start_link().
 
 -spec stop(term()) -> ok.
 stop(_State) ->
-    _ = tls_certificate_check_shared_state:destroy(),
     ok.

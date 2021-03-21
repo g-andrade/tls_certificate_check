@@ -28,17 +28,11 @@
 %% ------------------------------------------------------------------
 
 -export(
-    [init/0,
-     authoritative_certificate_values/0,
-     find_trusted_authority/1,
-     destroy/0
+    [new/2,
+     authoritative_certificate_values/1,
+     find_trusted_authority/2,
+     destroy_all/1
      ]).
-
-%% ------------------------------------------------------------------
-%% Macro Definitions
-%% ------------------------------------------------------------------
-
--define(PERSISTENT_TERM_KEY, '__$tls_certificate_check_shared_state').
 
 %% ------------------------------------------------------------------
 %% Record and Type Definitions
@@ -55,33 +49,42 @@
 %% API Function Definitions
 %% ------------------------------------------------------------------
 
--spec init() -> ok | {error, {failed_to_decode_authorities, tuple()}}.
-init() ->
-    EncodedAuthorities = tls_certificate_check_authorities:encoded_list(),
+-spec new(Key :: atom(), EncodedAuthorities :: binary())
+        -> ok | {error, {failed_to_decode_authorities, tuple()}}.
+new(Key, EncodedAuthorities) ->
     case tls_certificate_check_util:parse_encoded_authorities(EncodedAuthorities) of
         {ok, AuthoritativeCertificateValues} ->
             NewSharedState = new_shared_state(AuthoritativeCertificateValues),
-            save_shared_state(NewSharedState);
+            save_shared_state(Key, NewSharedState);
         {error, Reason} ->
             {error, {failed_to_decode_authorities, Reason}}
     end.
 
--spec authoritative_certificate_values() -> [public_key:der_encoded(), ...] | no_return().
-authoritative_certificate_values() ->
-    SharedState = get_shared_state(),
+-spec authoritative_certificate_values(atom()) -> [public_key:der_encoded(), ...] | no_return().
+authoritative_certificate_values(Key) ->
+    SharedState = get_shared_state(Key),
     SharedState#shared_state.authoritative_certificate_values.
 
--spec find_trusted_authority([public_key:der_encoded()])
+-spec find_trusted_authority(atom(), [public_key:der_encoded()])
         -> {trusted_ca, public_key:der_encoded()}
            | unknown_ca.
-find_trusted_authority(EncodedCertificates) ->
-    SharedState = get_shared_state(),
+find_trusted_authority(Key, EncodedCertificates) ->
+    SharedState = get_shared_state(Key),
     TrustedPublicKeys = SharedState#shared_state.trusted_public_keys,
     find_trusted_authority_recur(EncodedCertificates, TrustedPublicKeys).
 
--spec destroy() -> boolean().
-destroy() ->
-    persistent_term:erase(?PERSISTENT_TERM_KEY).
+-spec destroy_all(KeyPrefix :: string()) -> [atom()].
+destroy_all(KeyPrefix) ->
+    AllPersistentTermObjects = persistent_term:get(),
+    lists:filtermap(
+      fun ({Key, Value}) ->
+              is_atom(Key)
+              andalso lists:prefix(KeyPrefix, atom_to_list(Key))
+              andalso is_record(Value, shared_state)
+              andalso persistent_term:erase(Key)
+              andalso {true, Key}
+      end,
+      AllPersistentTermObjects).
 
 %% ------------------------------------------------------------------
 %% Internal Function Definitions
@@ -101,15 +104,16 @@ trusted_public_keys(AuthoritativeCertificateValues) ->
       end,
       #{}, AuthoritativeCertificateValues).
 
-save_shared_state(SharedState) ->
-    persistent_term:put(?PERSISTENT_TERM_KEY, SharedState).
+save_shared_state(Key, SharedState) ->
+    persistent_term:put(Key, SharedState).
 
-get_shared_state() ->
+get_shared_state(Key) ->
     try
-        persistent_term:get(?PERSISTENT_TERM_KEY)
+        persistent_term:get(Key)
     catch
         error:badarg ->
-            error({application_not_started, tls_certificate_check})
+            throw({tls_certificate_check_shared_state_not_found,
+                   #{persistent_term_key => Key}})
     end.
 
 find_trusted_authority_recur([EncodedCertificate | NextEncodedCertificates], TrustedPublicKeys) ->

@@ -19,9 +19,9 @@
 %% DEALINGS IN THE SOFTWARE.
 
 %% @private
--module(tls_certificate_check_authorities_update).
+-module(tls_certificate_check_hardcoded_authorities_updater).
 
--ifdef(UPDATER_ENABLED).
+-ifdef(HARDCODED_AUTHORITIES_UPDATER_ENABLED).
 
 -include_lib("kernel/include/file.hrl").
 -include_lib("public_key/include/OTP-PUB-KEY.hrl").
@@ -49,7 +49,7 @@
 %% API Function Definitions
 %% ------------------------------------------------------------------
 
--ifdef(UPDATER_SUPPORTED).
+-ifdef(HARDCODED_AUTHORITIES_UPDATER_SUPPORTED).
 
 -spec main([string(), ...]) -> no_return().
 main([AuthoritiesFilePath, AuthoritiesSource, OutputModuleFilePath, ChangelogFilePath]) ->
@@ -70,13 +70,13 @@ main(_) ->
     io:format(standard_error, "[error] This script requires Erlang/OTP 23+", []),
     erlang:halt(?FAILURE_STATUS_CODE).
 
--endif. % ifdef(UPDATER_SUPPORTED).
+-endif. % ifdef(HARDCODED_AUTHORITIES_UPDATER_SUPPORTED).
 
 %% ------------------------------------------------------------------
 %% Internal Function Definitions
 %% ------------------------------------------------------------------
 
--ifdef(UPDATER_SUPPORTED).
+-ifdef(HARDCODED_AUTHORITIES_UPDATER_SUPPORTED).
 
 output_module_name(OutputModuleFilePath) ->
     IoData = filename:basename(OutputModuleFilePath, ".erl"),
@@ -193,6 +193,8 @@ generate_code(#{authorities_source := AuthoritiesSource,
       "%% @private\n"
       "-module(~p).\n"
       "\n"
+      "-on_load(maybe_update_shared_state/0).\n"
+      "\n"
       "%% Automatically generated; do not edit.\n"
       "%%\n"
       "%% Source: ~ts\n"
@@ -213,7 +215,17 @@ generate_code(#{authorities_source := AuthoritiesSource,
       "-dialyzer({nowarn_function, encoded_list/0}).\n"
       "-spec encoded_list() -> binary().\n"
       "encoded_list() ->\n"
-      "~ts",
+      "~ts"
+      "\n"
+      "%% ------------------------------------------------------------------\n"
+      "%% Internal Function Definitions\n"
+      "%% ------------------------------------------------------------------\n"
+      "\n"
+      "-spec maybe_update_shared_state() -> ok | {error, term()}.\n"
+      "maybe_update_shared_state() ->\n"
+      "    % For code swaps / release upgrades\n"
+      "    EncodedCertificates = encoded_list(),\n"
+      "    tls_certificate_check_shared_state:maybe_update_shared_state(EncodedCertificates).\n",
 
       [CopyrightYearString,
        OutputModuleName,
@@ -291,8 +303,9 @@ certificate_differences(#{authoritative_certificate_values
     {ordsets:to_list(Additions), ordsets:to_list(Removals)}.
 
 previous_authoritative_certificate_values(#{output_module_name := OutputModuleName}) ->
-    try OutputModuleName:list() of
-        [_|_] = List ->
+    try OutputModuleName:encoded_list() of
+        <<EncodedList/bytes>> ->
+            {ok, List} = tls_certificate_check_util:parse_encoded_authorities(EncodedList),
             List
     catch
         error:undef ->
@@ -472,6 +485,6 @@ halt_(Status) ->
     OpaqueFunctionName = binary_to_term( term_to_binary(halt) ),
     erlang:OpaqueFunctionName(Status).
 
--endif. % ifdef(UPDATER_SUPPORTED).
+-endif. % ifdef(HARDCODED_AUTHORITIES_UPDATER_SUPPORTED).
 
--endif. % ifdef(UPDATER_ENABLED).
+-endif. % ifdef(HARDCODED_AUTHORITIES_UPDATER_ENABLED).
