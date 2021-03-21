@@ -19,7 +19,7 @@
 %% DEALINGS IN THE SOFTWARE.
 
 %% @private
--module(tls_certificate_check_authorities).
+-module(tls_certificate_check_hardcoded_authorities).
 
 -on_load(maybe_update_shared_state/0).
 
@@ -48,7 +48,7 @@ encoded_list() ->
     % We can't use `meck' to mock this because it can't mock local functions
     % (and maybe_update_shared_state/0 needs to call us as a local function,
     %  necessarily, because it runs upon the module being loaded.)
-    case file:consult("tls_certificate_check_authorities_mock_value.txt") of
+    case file:consult("tls_certificate_check_hardcoded_authorities_mock_value.txt") of
         {ok, [EncodedList]} -> EncodedList;
         {error, enoent} -> encoded_list_()
     end.

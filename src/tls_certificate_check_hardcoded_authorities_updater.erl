@@ -220,7 +220,7 @@ generate_code(#{authorities_source := AuthoritiesSource,
       "    % We can't use `meck' to mock this because it can't mock local functions\n"
       "    % (and maybe_update_shared_state/0 needs to call us as a local function,\n"
       "    %  necessarily, because it runs upon the module being loaded.)\n"
-      "    case file:consult(\"tls_certificate_check_authorities_mock_value.txt\") of\n"
+      "    case file:consult(\"tls_certificate_check_hardcoded_authorities_mock_value.txt\") of\n"
       "        {ok, [EncodedList]} -> EncodedList;\n"
       "        {error, enoent} -> encoded_list_()\n"
       "    end.\n"

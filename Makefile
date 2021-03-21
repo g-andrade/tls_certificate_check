@@ -16,7 +16,7 @@ endif
 
 AUTHORITIES_URL = https://curl.se/ca/cacert.pem
 AUTHORITIES_FILE = tmp/cacerts.pem
-AUTHORITIES_MODULE = src/tls_certificate_check_authorities.erl
+AUTHORITIES_MODULE = src/tls_certificate_check_hardcoded_authorities.erl
 
 .PHONY: all build clean \
 	check dialyzer xref \

@@ -142,7 +142,7 @@ maybe_update_shared_state(EncodedAuthorities) ->
 -spec proc_lib_init() -> no_return().
 proc_lib_init() ->
     % do this before registering to ensure initialization is triggered before any update
-    EncodedAuthorities = tls_certificate_check_authorities:encoded_list(),
+    EncodedAuthorities = tls_certificate_check_hardcoded_authorities:encoded_list(),
     gen_server:cast(self(), {initialize_shared_state, EncodedAuthorities}),
 
     try register(?SERVER, self()) of

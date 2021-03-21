@@ -44,21 +44,21 @@ end_per_suite(_Config) ->
 %% ------------------------------------------------------------------
 
 code_swap_success(_Config) ->
-    EncodedAuthorities = tls_certificate_check_authorities:encoded_list(),
+    EncodedAuthorities = tls_certificate_check_hardcoded_authorities:encoded_list(),
     SharedStateKeyBefore = tls_certificate_check_shared_state_owner:latest_shared_state_key(),
 
     % existing list, twice
     NewEncodedAuthorities = <<EncodedAuthorities/bytes, EncodedAuthorities/bytes>>,
-    ok = file:write_file("tls_certificate_check_authorities_mock_value.txt",
+    ok = file:write_file("tls_certificate_check_hardcoded_authorities_mock_value.txt",
                          io_lib:format("~p.", [NewEncodedAuthorities])),
     try
-        ?assertEqual(false, code:purge(tls_certificate_check_authorities)),
-        ?assertMatch({module, _}, code:load_file(tls_certificate_check_authorities)),
+        ?assertEqual(false, code:purge(tls_certificate_check_hardcoded_authorities)),
+        ?assertMatch({module, _}, code:load_file(tls_certificate_check_hardcoded_authorities)),
 
         SharedStateKeyAfter = tls_certificate_check_shared_state_owner:latest_shared_state_key(),
         ?assertNotEqual(SharedStateKeyBefore, SharedStateKeyAfter) % because the hotswap succeeded
     after
-        ok = file:delete("tls_certificate_check_authorities_mock_value.txt")
+        ok = file:delete("tls_certificate_check_hardcoded_authorities_mock_value.txt")
     end.
 
 code_swap_failure(_Config) ->
@@ -66,14 +66,14 @@ code_swap_failure(_Config) ->
 
     % gibberish
     NewEncodedAuthorities = crypto:strong_rand_bytes(32),
-    ok = file:write_file("tls_certificate_check_authorities_mock_value.txt",
+    ok = file:write_file("tls_certificate_check_hardcoded_authorities_mock_value.txt",
                          io_lib:format("~p.", [NewEncodedAuthorities])),
     try
-        ?assertEqual(false, code:purge(tls_certificate_check_authorities)),
-        ?assertEqual({error, on_load_failure}, code:load_file(tls_certificate_check_authorities)),
+        ?assertEqual(false, code:purge(tls_certificate_check_hardcoded_authorities)),
+        ?assertEqual({error, on_load_failure}, code:load_file(tls_certificate_check_hardcoded_authorities)),
 
         SharedStateKeyAfter = tls_certificate_check_shared_state_owner:latest_shared_state_key(),
         ?assertEqual(SharedStateKeyBefore, SharedStateKeyAfter) % because the hotswap succeeded
     after
-        ok = file:delete("tls_certificate_check_authorities_mock_value.txt")
+        ok = file:delete("tls_certificate_check_hardcoded_authorities_mock_value.txt")
     end.
