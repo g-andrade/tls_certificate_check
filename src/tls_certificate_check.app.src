@@ -1,7 +1,9 @@
 {application, tls_certificate_check,
  [{description, "TLS/SSL certificate verification for humans"},
   {vsn, git},
-  {registered, []},
+  {registered,
+   [tls_certificate_check_sup
+   ]},
   {mod, {tls_certificate_check_app, []}},
   {applications,
    [kernel,
