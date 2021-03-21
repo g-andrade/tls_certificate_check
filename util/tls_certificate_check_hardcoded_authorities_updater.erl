@@ -21,8 +21,6 @@
 %% @private
 -module(tls_certificate_check_hardcoded_authorities_updater).
 
--ifdef(HARDCODED_AUTHORITIES_UPDATER_ENABLED).
-
 -include_lib("kernel/include/file.hrl").
 -include_lib("public_key/include/OTP-PUB-KEY.hrl").
 -include_lib("stdlib/include/assert.hrl").
@@ -501,5 +499,3 @@ halt_(Status) ->
     erlang:OpaqueFunctionName(Status).
 
 -endif. % ifdef(HARDCODED_AUTHORITIES_UPDATER_SUPPORTED).
-
--endif. % ifdef(HARDCODED_AUTHORITIES_UPDATER_ENABLED).
