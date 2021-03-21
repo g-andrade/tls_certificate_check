@@ -73,7 +73,7 @@ code_swap_failure(_Config) ->
         ?assertEqual({error, on_load_failure}, code:load_file(tls_certificate_check_hardcoded_authorities)),
 
         SharedStateKeyAfter = tls_certificate_check_shared_state:latest_shared_state_key(),
-        ?assertEqual(SharedStateKeyBefore, SharedStateKeyAfter) % because the hotswap succeeded
+        ?assertEqual(SharedStateKeyBefore, SharedStateKeyAfter) % because the hotswap failed
     after
         ok = file:delete("tls_certificate_check_hardcoded_authorities_mock_value.txt")
     end.
