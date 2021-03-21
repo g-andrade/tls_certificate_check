@@ -273,11 +273,34 @@ save_shared_state(SharedState) ->
     {ok, Key}.
 
 shared_state_key(SharedState) ->
-    EncodedSharedState = term_to_binary(SharedState),
-    EncodedSharedStateDigest = crypto:hash(sha256, EncodedSharedState),
-    KeySuffixInteger = binary:decode_unsigned(EncodedSharedStateDigest, big),
+    CanonicalSharedStateRepresentation = canonical_shared_state_representation(SharedState),
+    CanonicalSharedStateDigest
+        = crypto:hash(sha256, term_to_binary(CanonicalSharedStateRepresentation)),
+
+    KeySuffixInteger = binary:decode_unsigned(CanonicalSharedStateDigest, big),
     KeySuffix = integer_to_list(KeySuffixInteger, 16),
     list_to_atom(?SHARED_STATE_KEY_PREFIX ++ KeySuffix).
+
+canonical_shared_state_representation(SharedState) ->
+    TupleIndices = lists:seq(1, tuple_size(SharedState)),
+    TupleValues = tuple_to_list(SharedState),
+    KvPairs = lists:zip(TupleIndices, TupleValues),
+    lists:map(
+      fun ({1, RecordTag}) ->
+              RecordTag;
+          ({#shared_state.authoritative_certificate_values, AuthoritativeCertificateValues}) ->
+              % Order matters - or rather, if the order is to change,
+              % this should not provoke a VM-wide garbage collection
+              % with a potentially disastrous explosion in memory
+              % consumption.
+              AuthoritativeCertificateValues;
+          ({#shared_state.trusted_public_keys, TrustedPublicKeys}) ->
+              % `term_to_binary/1' doesn't guarantee any particular encoding order;
+              % therefore equivalent shared states could end up under different keys
+              % (depending on VM implementation)
+              lists:sort( maps:to_list(TrustedPublicKeys) )
+      end,
+      KvPairs).
 
 destroy_all_shared_states(KeyPrefix) ->
     AllPersistentTermObjects = persistent_term:get(),
