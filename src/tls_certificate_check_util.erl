@@ -33,7 +33,7 @@
 %% API Function Definitions
 %% ------------------------------------------------------------------
 
--spec parse_encoded_authorities(binary()) 
+-spec parse_encoded_authorities(binary())
         -> {ok, [public_key:der_encoded(), ...]}
            | {error, no_authoritative_certificates_found}
            | {error, {failed_to_decode, {atom(), term(), list()}}}

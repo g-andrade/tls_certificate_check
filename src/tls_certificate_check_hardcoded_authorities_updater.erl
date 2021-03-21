@@ -214,8 +214,20 @@ generate_code(#{authorities_source := AuthoritiesSource,
       "\n"
       "-dialyzer({nowarn_function, encoded_list/0}).\n"
       "-spec encoded_list() -> binary().\n"
+      "\n"
+      "-ifdef(TEST).\n"
       "encoded_list() ->\n"
-      "~ts"
+      "    % We can't use `meck' to mock this because it can't mock local functions\n"
+      "    % (and maybe_update_shared_state/0 needs to call us as a local function,\n"
+      "    %  necessarily, because it runs upon the module being loaded.)\n"
+      "    case file:consult(\"tls_certificate_check_authorities_mock_value.txt\") of\n"
+      "        {ok, [EncodedList]} -> EncodedList;\n"
+      "        {error, enoent} -> encoded_list_()\n"
+      "    end.\n"
+      "-else.\n"
+      "encoded_list() ->\n"
+      "    encoded_list_().\n"
+      "-endif.\n"
       "\n"
       "%% ------------------------------------------------------------------\n"
       "%% Internal Function Definitions\n"
@@ -225,7 +237,10 @@ generate_code(#{authorities_source := AuthoritiesSource,
       "maybe_update_shared_state() ->\n"
       "    % For code swaps / release upgrades\n"
       "    EncodedCertificates = encoded_list(),\n"
-      "    tls_certificate_check_shared_state:maybe_update_shared_state(EncodedCertificates).\n",
+      "    tls_certificate_check_shared_state_owner:maybe_update_shared_state(EncodedCertificates).\n"
+      "\n"
+      "encoded_list_() ->\n"
+      "~ts",
 
       [CopyrightYearString,
        OutputModuleName,

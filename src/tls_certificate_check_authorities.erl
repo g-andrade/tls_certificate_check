@@ -42,7 +42,32 @@
 
 -dialyzer({nowarn_function, encoded_list/0}).
 -spec encoded_list() -> binary().
+
+-ifdef(TEST).
 encoded_list() ->
+    % We can't use `meck' to mock this because it can't mock local functions
+    % (and maybe_update_shared_state/0 needs to call us as a local function,
+    %  necessarily, because it runs upon the module being loaded.)
+    case file:consult("tls_certificate_check_authorities_mock_value.txt") of
+        {ok, [EncodedList]} -> EncodedList;
+        {error, enoent} -> encoded_list_()
+    end.
+-else.
+encoded_list() ->
+    encoded_list_().
+-endif.
+
+%% ------------------------------------------------------------------
+%% Internal Function Definitions
+%% ------------------------------------------------------------------
+
+-spec maybe_update_shared_state() -> ok | {error, term()}.
+maybe_update_shared_state() ->
+    % For code swaps / release upgrades
+    EncodedCertificates = encoded_list(),
+    tls_certificate_check_shared_state_owner:maybe_update_shared_state(EncodedCertificates).
+
+encoded_list_() ->
     <<"##\n",
       "## Bundle of CA Root Certificates\n",
       "##\n",
@@ -3273,13 +3298,3 @@ encoded_list() ->
       "I/hGoiLtk/bdmuYqh7GYVPEi92tF4+KOdh2ajcQGjTa3FPOdVGm3jjzVpG2Tgbet9r1ke8LJaDmg\n",
       "kpzNNIaRkPpkUZ3+/uul9XXeifdy\n",
       "-----END CERTIFICATE-----\n">>.
-
-%% ------------------------------------------------------------------
-%% Internal Function Definitions
-%% ------------------------------------------------------------------
-
--spec maybe_update_shared_state() -> ok | {error, term()}.
-maybe_update_shared_state() ->
-    % For code swaps / release upgrades
-    EncodedCertificates = encoded_list(),
-    tls_certificate_check_shared_state_owner:maybe_update_shared_state(EncodedCertificates).
