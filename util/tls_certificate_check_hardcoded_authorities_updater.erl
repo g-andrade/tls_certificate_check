@@ -235,7 +235,7 @@ generate_code(#{authorities_source := AuthoritiesSource,
       "maybe_update_shared_state() ->\n"
       "    % For code swaps / release upgrades\n"
       "    EncodedCertificates = encoded_list(),\n"
-      "    tls_certificate_check_shared_state_owner:maybe_update_shared_state(EncodedCertificates).\n"
+      "    tls_certificate_check_shared_state:maybe_update_shared_state(EncodedCertificates).\n"
       "\n"
       "encoded_list_() ->\n"
       "~ts",

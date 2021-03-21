@@ -65,7 +65,7 @@ encoded_list() ->
 maybe_update_shared_state() ->
     % For code swaps / release upgrades
     EncodedCertificates = encoded_list(),
-    tls_certificate_check_shared_state_owner:maybe_update_shared_state(EncodedCertificates).
+    tls_certificate_check_shared_state:maybe_update_shared_state(EncodedCertificates).
 
 encoded_list_() ->
     <<"##\n",

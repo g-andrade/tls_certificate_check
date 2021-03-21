@@ -59,5 +59,5 @@ start_link() ->
 -spec init([]) -> {ok, {supervisor:sup_flags(), [supervisor:child_spec(), ...]}}.
 init([]) ->
     SupFlags = #{strategy => one_for_one, intensity => 5, period => 1},
-    ChildSpecs = [tls_certificate_check_shared_state_owner:child_spec()],
+    ChildSpecs = [tls_certificate_check_shared_state:child_spec()],
     {ok, {SupFlags, ChildSpecs}}.
