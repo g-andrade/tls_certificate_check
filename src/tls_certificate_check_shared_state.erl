@@ -203,13 +203,9 @@ handle_info(Info, State) ->
 
 -spec terminate(term(), state()) -> ok.
 terminate(_Reason, _State) ->
-    %% XXX: The following is potentially very dangerous
-    %% but I don't wish to discard the idea right away.
-    %% Think on it for a while longer.
-    %
-    % ets:delete_all_objects(?INFO_TABLE),
-    % erlang:yield(),
-    % _ = destroy_all_shared_states(),
+    ets:delete_all_objects(?INFO_TABLE),
+    erlang:yield(),
+    _ = destroy_all_shared_states(?SHARED_STATE_KEY_PREFIX),
     ok.
 
 -spec code_change(term(), state() | term(), term())
@@ -306,21 +302,17 @@ canonical_shared_state_representation(SharedState) ->
       end,
       KvPairs).
 
-%% XXX: The following is potentially very dangerous
-%% but I don't wish to discard the idea right away.
-%% Think on it for a while longer.
-%
-% destroy_all_shared_states) ->
-%     AllPersistentTermObjects = persistent_term:get(),
-%     lists:filtermap(
-%       fun ({Key, Value}) ->
-%               is_atom(Key)
-%               andalso lists:prefix(?SHARED_STATE_KEY_PREFIX, atom_to_list(Key))
-%               andalso is_record(Value, shared_state)
-%               andalso persistent_term:erase(Key)
-%               andalso {true, Key}
-%       end,
-%       AllPersistentTermObjects).
+destroy_all_shared_states(KeyPrefix) ->
+    AllPersistentTermObjects = persistent_term:get(),
+    lists:filtermap(
+      fun ({Key, Value}) ->
+              is_atom(Key)
+              andalso lists:prefix(KeyPrefix, atom_to_list(Key))
+              andalso is_record(Value, shared_state)
+              andalso persistent_term:erase(Key)
+              andalso {true, Key}
+      end,
+      AllPersistentTermObjects).
 
 get_latest_shared_state() ->
     Key = latest_shared_state_key(),
