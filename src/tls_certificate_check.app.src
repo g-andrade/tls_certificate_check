@@ -9,7 +9,6 @@
   {applications,
    [crypto,
     kernel,
-    inets, % remove as soon as `NO_URI_STRING' is no longer needed
     public_key,
     ssl,
     stdlib,
