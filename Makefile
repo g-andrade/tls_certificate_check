@@ -26,7 +26,8 @@ AUTHORITIES_MODULE = src/tls_certificate_check_hardcoded_authorities.erl
 	publish \
 	hardcoded-authorities-update \
 	hardcoded-authorities-updater \
-	download-latest-authorities
+	download-latest-authorities \
+	invoke-hardcoded-authorities-updater
 
 .NOTPARALLEL: check
 
@@ -78,11 +79,7 @@ publish: $(REBAR3)
 hardcoded-authorities-update: hardcoded-authorities-updater
 hardcoded-authorities-update: download-latest-authorities
 hardcoded-authorities-update:
-	@./_build/hardcoded_authorities_update/bin/tls_certificate_check_hardcoded_authorities_updater \
-		"$(AUTHORITIES_FILE)" \
-		"$(AUTHORITIES_URL)" \
-		"$(AUTHORITIES_MODULE)" \
-		"CHANGELOG.md"
+	@make invoke-hardcoded-authorities-updater
 
 hardcoded-authorities-updater:
 	@$(REBAR3) as hardcoded_authorities_update escriptize
@@ -92,3 +89,10 @@ download-latest-authorities:
 		-o "$(AUTHORITIES_FILE)" \
 		--remote-time \
 		"$(AUTHORITIES_URL)"
+
+invoke-hardcoded-authorities-updater: hardcoded-authorities-updater
+	@./_build/hardcoded_authorities_update/bin/tls_certificate_check_hardcoded_authorities_updater \
+		"$(AUTHORITIES_FILE)" \
+		"$(AUTHORITIES_URL)" \
+		"$(AUTHORITIES_MODULE)" \
+		"CHANGELOG.md"
