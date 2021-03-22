@@ -2,7 +2,7 @@
  [{description, "TLS/SSL certificate verification for humans"},
   {vsn, git},
   {registered,
-   [tls_certificate_check_runtime_authorities_updater,
+   [tls_certificate_check_hardcoded_authorities_updater,
     tls_certificate_check_sup
    ]},
   {mod, {tls_certificate_check_app, []}},
