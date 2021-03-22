@@ -72,7 +72,8 @@
 options(Target) ->
     try target_to_hostname(Target) of
         Hostname ->
-            EncodedAuthoritativeCertificates = tls_certificate_check_authorities:list(),
+            AuthoritativeCertificateValues
+                = tls_certificate_check_shared_state:authoritative_certificate_values(),
             CertificateVerificationFunOptions = [{check_hostname, Hostname}],
             CertificateVerificationFun = {fun ssl_verify_hostname:verify_fun/3,
                                           CertificateVerificationFunOptions},
@@ -80,8 +81,9 @@ options(Target) ->
             HostnameCheckOptions = hostname_check_opts(),
             [{verify, verify_peer},
              {depth, ?DEFAULT_MAX_CERTIFICATE_CHAIN_DEPTH},
-             {cacerts, EncodedAuthoritativeCertificates},
-             {partial_chain, fun tls_certificate_check_chain:find_authority/1},
+             {cacerts, AuthoritativeCertificateValues},
+             {partial_chain,
+                fun tls_certificate_check_shared_state:find_trusted_authority/1},
              {verify_fun, CertificateVerificationFun}
              | HostnameCheckOptions]
     catch
@@ -93,18 +95,6 @@ options(Target) ->
 %% Internal Function Definitions
 %% ------------------------------------------------------------------
 
--ifdef(NO_URI_STRING).
-target_to_hostname(Target) ->
-    StrTarget = binary_to_list( iolist_to_binary(Target) ),
-    case http_uri:parse(StrTarget) of
-        {ok, {http, _, _, _, _, _}} ->
-            throw(http_target);
-        {ok, {_, _, Hostname, _, _, _}} ->
-            Hostname;
-        _ ->
-            StrTarget
-    end.
--else.
 target_to_hostname(Target) ->
     BinaryTarget = iolist_to_binary(Target),
     case uri_string:parse(BinaryTarget) of
@@ -115,16 +105,10 @@ target_to_hostname(Target) ->
         _ ->
             binary_to_list(BinaryTarget)
     end.
--endif.
 
--ifdef(NO_CUSTOM_HOSTNAME_CHECK).
-hostname_check_opts() ->
-    [].
--else.
 hostname_check_opts() ->
     % Required for OTP 23 as they fixed TLS hostname validation.
     % See: https://bugs.erlang.org/browse/ERL-1232
     Protocol = https,
     MatchFun = public_key:pkix_verify_hostname_match_fun(Protocol),
     [{customize_hostname_check, [{match_fun, MatchFun}]}].
--endif.

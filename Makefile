@@ -15,8 +15,8 @@ ifeq ($(REBAR3),)
 endif
 
 AUTHORITIES_URL = https://curl.se/ca/cacert.pem
-AUTHORITIES_FILE = priv/cacerts.pem
-AUTHORITIES_MODULE = src/tls_certificate_check_authorities.erl
+AUTHORITIES_FILE = tmp/cacerts.pem
+AUTHORITIES_MODULE = src/tls_certificate_check_hardcoded_authorities.erl
 
 .PHONY: all build clean \
 	check dialyzer xref \
@@ -24,11 +24,11 @@ AUTHORITIES_MODULE = src/tls_certificate_check_authorities.erl
 	shell \
 	doc \
 	publish \
-	update-authorities \
-	invoke-authorities-updater \
-	build-authorities-updater
+	hardcoded-authorities-update \
+	hardcoded-authorities-updater \
+	download-latest-authorities
 
-.NOTPARALLEL: check update-authorities
+.NOTPARALLEL: check
 
 all: build
 
@@ -45,10 +45,10 @@ clean: $(REBAR3)
 check: dialyzer xref
 
 dialyzer: $(REBAR3)
-	@$(REBAR3) as update_authorities dialyzer
+	@$(REBAR3) as hardcoded_authorities_update dialyzer
 
 xref: $(REBAR3)
-	@$(REBAR3) as update_authorities xref
+	@$(REBAR3) as hardcoded_authorities_update xref
 
 test: $(REBAR3)
 	@$(REBAR3) do ct, cover
@@ -75,22 +75,20 @@ publish: $(REBAR3)
 	@$(REBAR3) as publish hex publish
 	@$(REBAR3) as publish hex docs
 
-update-authorities: download-latest-authorities
-update-authorities: invoke-authorities-updater
-
-download-latest-authorities:
-	@curl \
-		--cacert priv/cacerts.pem \
-		-o "$(AUTHORITIES_FILE)" \
-		--remote-time \
-		"$(AUTHORITIES_URL)"
-
-invoke-authorities-updater: build-authorities-updater
-	@./_build/update_authorities/bin/tls_certificate_check_authorities_update \
+hardcoded-authorities-update: hardcoded-authorities-updater
+hardcoded-authorities-update: download-latest-authorities
+hardcoded-authorities-update:
+	@./_build/hardcoded_authorities_update/bin/tls_certificate_check_hardcoded_authorities_updater \
 		"$(AUTHORITIES_FILE)" \
 		"$(AUTHORITIES_URL)" \
 		"$(AUTHORITIES_MODULE)" \
 		"CHANGELOG.md"
 
-build-authorities-updater:
-	@$(REBAR3) as update_authorities escriptize
+hardcoded-authorities-updater:
+	@$(REBAR3) as hardcoded_authorities_update escriptize
+
+download-latest-authorities:
+	@curl \
+		-o "$(AUTHORITIES_FILE)" \
+		--remote-time \
+		"$(AUTHORITIES_URL)"

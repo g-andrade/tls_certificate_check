@@ -1,4 +1,4 @@
-%% Copyright (c) 2020-2021 Guilherme Andrade
+%% Copyright (c) 2021 Guilherme Andrade
 %%
 %% Permission is hereby granted, free of charge, to any person obtaining a
 %% copy  of this software and associated documentation files (the "Software"),
@@ -19,35 +19,45 @@
 %% DEALINGS IN THE SOFTWARE.
 
 %% @private
--module(tls_certificate_check_chain).
-
--include_lib("public_key/include/OTP-PUB-KEY.hrl").
+-module(tls_certificate_check_sup).
+-behaviour(supervisor).
 
 %% ------------------------------------------------------------------
 %% API Function Exports
 %% ------------------------------------------------------------------
 
 -export(
-   [find_authority/1
+   [start_link/0
    ]).
+
+%% ------------------------------------------------------------------
+%% supervisor Function Exports
+%% ------------------------------------------------------------------
+
+-export(
+   [init/1
+   ]).
+
+%% ------------------------------------------------------------------
+%% Macro Definitions
+%% ------------------------------------------------------------------
+
+-define(SERVER, ?MODULE).
 
 %% ------------------------------------------------------------------
 %% API Function Definitions
 %% ------------------------------------------------------------------
 
--spec find_authority([public_key:der_encoded()])
-        -> {trusted_ca, public_key:der_encoded()}
-           | unknown_ca.
-find_authority([EncodedCertificate | NextEncodedCertificates]) ->
-    Certificate = public_key:pkix_decode_cert(EncodedCertificate, otp),
-    #'OTPCertificate'{tbsCertificate = TbsCertificate} = Certificate,
-    #'OTPTBSCertificate'{subjectPublicKeyInfo = PublicKeyInfo} = TbsCertificate,
+-spec start_link() -> {ok, pid()} | {error, term()}.
+start_link() ->
+    supervisor:start_link({local, ?SERVER}, ?MODULE, []).
 
-    case tls_certificate_check_authorities:is_trusted_public_key(PublicKeyInfo) of
-        true ->
-            {trusted_ca, EncodedCertificate};
-        false ->
-            find_authority(NextEncodedCertificates)
-    end;
-find_authority([]) ->
-    unknown_ca.
+%% ------------------------------------------------------------------
+%% supervisor Function Definitions
+%% ------------------------------------------------------------------
+
+-spec init([]) -> {ok, {supervisor:sup_flags(), [supervisor:child_spec(), ...]}}.
+init([]) ->
+    SupFlags = #{strategy => one_for_one, intensity => 5, period => 1},
+    ChildSpecs = [tls_certificate_check_shared_state:child_spec()],
+    {ok, {SupFlags, ChildSpecs}}.

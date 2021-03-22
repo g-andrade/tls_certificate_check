@@ -18,10 +18,10 @@
 %% FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 %% DEALINGS IN THE SOFTWARE.
 
--module(tls_certificate_check_SUITE).
+-module(tls_certificate_check_options_SUITE).
 -compile(export_all).
 
--include_lib("eunit/include/eunit.hrl").
+-include_lib("stdlib/include/assert.hrl").
 
 -define(OTP_21_3__INITIAL_SSL_VERSION, [9,2]).
 
@@ -65,7 +65,7 @@ init_per_suite(Config) ->
     Config.
 
 end_per_suite(_Config) ->
-    ok.
+    ok = application:stop(tls_certificate_check).
 
 init_per_group(GroupName, Config) ->
     case GroupName of
