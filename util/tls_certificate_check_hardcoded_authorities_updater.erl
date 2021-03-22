@@ -339,7 +339,7 @@ updated_changelog(UpdateArgs, Changelog, Additions, Removals) ->
 
 check_that_last_changelog_release_is_complete(Changelog, LastReleasePos) ->
     <<_:LastReleasePos/bytes, LastRelease/bytes>> = Changelog,
-    case re:run(LastRelease, <<"## \\[([0-9]+)\\.([0-9]+)\\.([0-9]+)">>,
+    case re:run(LastRelease, <<"^## \\[([0-9]+)\\.([0-9]+)\\.([0-9]+)">>,
                 [{capture, [1, 2, 3], binary}])
     of
         {match, [BinMajorVersion, BinMinorVersion, BinPatchVersion]} ->
@@ -348,7 +348,7 @@ check_that_last_changelog_release_is_complete(Changelog, LastReleasePos) ->
             PatchVersion = binary_to_integer(BinPatchVersion),
             {ok, {MajorVersion, MinorVersion, PatchVersion}};
         nomatch ->
-            fail("Unexpected last release info on changelog: ~p", [LastRelease])
+            fail("Unexpected last release info on changelog:~n~p", [LastRelease])
     end.
 
 
