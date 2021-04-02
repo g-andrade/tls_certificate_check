@@ -20,6 +20,10 @@ plus all the the boilerplate code required for validating
 <a target="_parent" href="https://github.com/elixir-mint/mint/issues/95">misordered certificate
 chains</a>.
 
+The trusted authorities' certificates are hardcoded in PEM format, decoded when the application
+starts and made available to the API through
+<a target="_parent" href="https://erlang.org/doc/man/persistent_term.html">`persistent_term'</a>.
+
 <h3>Usage - Erlang</h3>
 
 <h5>1. Import as a dependency</h5>

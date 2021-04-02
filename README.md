@@ -17,6 +17,11 @@ together with
 plus all the the boilerplate code required for validating [misordered
 certificate chains](https://github.com/elixir-mint/mint/issues/95).
 
+The trusted authorities' certificates are hardcoded in PEM format,
+decoded when the application starts and made available to the API
+through
+[`persistent_term`](https://erlang.org/doc/man/persistent_term.html).
+
 ### Usage - Erlang
 
 ##### 1\. Import as a dependency
