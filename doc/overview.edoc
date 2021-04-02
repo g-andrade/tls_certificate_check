@@ -33,7 +33,7 @@ starts and made available to the API through
 <pre lang="erlang" class="erlang">
 {deps,
  [% [...]
-  {tls_certificate_check, "1.2.0"}
+  {tls_certificate_check, "~> 1.2"}
   ]}.
 </pre>
 </details>
@@ -68,7 +68,7 @@ ssl:connect(Host, 443, Options, 5000)
   defp deps do
     [
       # [...]
-      {:tls_certificate_check, "1.2.0"}
+      {:tls_certificate_check, "~> 1.2"}
     ]
   end
 </pre>
