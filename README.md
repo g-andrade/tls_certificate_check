@@ -14,7 +14,7 @@ It wraps [Mozilla's CA certificate
 store](https://curl.se/docs/caextract.html), as extracted by `curl`,
 together with
 [ssl\_verify\_fun](https://github.com/deadtrickster/ssl_verify_fun.erl)
-plus all the the boilerplate code required for validating [disoderly
+plus all the the boilerplate code required for validating [misordered
 certificate chains](https://github.com/elixir-mint/mint/issues/95).
 
 ### Usage - Erlang

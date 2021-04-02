@@ -17,7 +17,7 @@ It wraps <a target="_parent" href="https://curl.se/docs/caextract.html">Mozilla'
 as extracted by `curl', together with
 <a target="_parent" href="https://github.com/deadtrickster/ssl_verify_fun.erl">ssl_verify_fun</a>
 plus all the the boilerplate code required for validating
-<a target="_parent" href="https://github.com/elixir-mint/mint/issues/95">disoderly certificate
+<a target="_parent" href="https://github.com/elixir-mint/mint/issues/95">misordered certificate
 chains</a>.
 
 <h3>Usage - Erlang</h3>
