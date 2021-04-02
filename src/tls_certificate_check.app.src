@@ -8,6 +8,7 @@
   {mod, {tls_certificate_check_app, []}},
   {applications,
    [crypto,
+    inets, % for `httpc'
     kernel,
     public_key,
     ssl,

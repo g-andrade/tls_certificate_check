@@ -25,7 +25,7 @@
 
 %% Automatically generated; do not edit.
 %%
-%% Source: https://curl.se/ca/cacert.pem
+%% URL: https://curl.se/ca/cacert.pem
 %% Date: 2021/01/19, 04:12 UTC
 
 %% ------------------------------------------------------------------
@@ -33,12 +33,21 @@
 %% ------------------------------------------------------------------
 
 -export(
-    [encoded_list/0
+    [full_info/0,
+     encoded_list/0
      ]).
 
 %% ------------------------------------------------------------------
 %% API Function Definitions
 %% ------------------------------------------------------------------
+
+-dialyzer({nowarn_function, full_info/0}).
+-spec full_info() -> tls_certificate_check_shared_state:authorities_update().
+
+full_info() ->
+    #{url => "https://curl.se/ca/cacert.pem",
+      datetime => {{2021,1,19},{4,12,4}},
+      encoded_list => encoded_list()}.
 
 -dialyzer({nowarn_function, encoded_list/0}).
 -spec encoded_list() -> binary().
@@ -64,8 +73,7 @@ encoded_list() ->
 -spec maybe_update_shared_state() -> ok | {error, term()}.
 maybe_update_shared_state() ->
     % For code swaps / release upgrades
-    EncodedCertificates = encoded_list(),
-    tls_certificate_check_shared_state:maybe_update_shared_state(EncodedCertificates).
+    tls_certificate_check_shared_state:maybe_update_shared_state(full_info()).
 
 encoded_list_() ->
     <<"##\n",

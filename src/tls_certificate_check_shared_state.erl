@@ -34,6 +34,7 @@
     start_link/0,
     authoritative_certificate_values/0,
     find_trusted_authority/1,
+    authorities_info/0,
     maybe_update_shared_state/1
    ]).
 
@@ -100,11 +101,26 @@
 -type state() :: #state{}.
 
 -record(shared_state, {
+          authorities_url :: nonempty_string(),
+          authorities_datetime :: calendar:datetime(),
           authoritative_certificate_values :: [public_key:der_encoded(), ...],
           trusted_public_keys :: #{public_key_info() := []}
          }).
 
 -type public_key_info() :: #'OTPSubjectPublicKeyInfo'{}.
+
+-type authorities_info()
+    :: #{ url := nonempty_string(),
+          datetime := calendar:datetime()
+        }.
+-export_type([authorities_info/0]).
+
+-type authorities_update()
+    :: #{ url := nonempty_string(),
+          datetime := calendar:datetime(),
+          encoded_list := binary()
+        }.
+-export_type([authorities_update/0]).
 
 %% ------------------------------------------------------------------
 %% API Function Definitions
@@ -135,10 +151,17 @@ find_trusted_authority(EncodedCertificates) ->
     TrustedPublicKeys = SharedState#shared_state.trusted_public_keys,
     find_trusted_authority_recur(EncodedCertificates, TrustedPublicKeys).
 
--spec maybe_update_shared_state(binary()) -> ok | {error, term()}.
-maybe_update_shared_state(EncodedAuthorities) ->
+-spec authorities_info() -> authorities_info().
+authorities_info() ->
+    SharedState = get_latest_shared_state(),
+    #{url => SharedState#shared_state.authorities_url,
+      datetime => SharedState#shared_state.authorities_datetime}.
+
+-spec maybe_update_shared_state(authorities_update()) -> ok | {error, term()}.
+maybe_update_shared_state(AuthoritiesUpdate) ->
     try
-        gen_server:call(?SERVER, {update_shared_state, EncodedAuthorities}, infinity)
+        gen_server:call(?SERVER, {maybe_update_shared_state, AuthoritiesUpdate},
+                        _Timeout = infinity)
     catch
         exit:{noproc, {gen_server, call, [?SERVER | _]}} ->
             ok
@@ -151,8 +174,8 @@ maybe_update_shared_state(EncodedAuthorities) ->
 -spec proc_lib_init() -> no_return().
 proc_lib_init() ->
     % do this before registering to ensure initialization is triggered before any update
-    EncodedAuthorities = tls_certificate_check_hardcoded_authorities:encoded_list(),
-    gen_server:cast(self(), {initialize_shared_state, EncodedAuthorities}),
+    AuthoritiesSelfUpdate = tls_certificate_check_hardcoded_authorities:full_info(),
+    gen_server:cast(self(), {initialize_shared_state, AuthoritiesSelfUpdate}),
 
     try register(?SERVER, self()) of
         true ->
@@ -179,9 +202,9 @@ init(_) ->
         -> {reply, ok, state()} |
            {reply, {error, term()}, state()} |
            {stop, {unexpected_call, #{request := _, from := {pid(), reference()}}}, state()}.
-handle_call({update_shared_state, EncodedAuthorities}, _From, State)
+handle_call({maybe_update_shared_state, AuthoritiesUpdate}, _From, State)
   when State#state.shared_state_initialized ->
-    handle_shared_state_update(EncodedAuthorities, State);
+    handle_potential_shared_state_update(AuthoritiesUpdate, State);
 handle_call(Request, From, State) ->
     ErrorDetails = #{request => Request, from => From},
     {stop, {unexpected_call, ErrorDetails}, State}.
@@ -190,9 +213,9 @@ handle_call(Request, From, State) ->
         -> {noreply, state()} |
            {stop, normal, state()} |
            {stop, {unexpected_cast, term()}, state()}.
-handle_cast({initialize_shared_state, EncodedAuthorities}, State)
+handle_cast({initialize_shared_state, AuthoritiesUpdate}, State)
   when not State#state.shared_state_initialized ->
-    handle_shared_state_initialization(EncodedAuthorities, State);
+    handle_shared_state_initialization(AuthoritiesUpdate, State);
 handle_cast(Request, State) ->
     {stop, {unexpected_cast, Request}, State}.
 
@@ -223,8 +246,8 @@ new_info_table() ->
     Opts = [named_table, protected, {read_concurrency, true}],
     ets:new(?INFO_TABLE, Opts).
 
-handle_shared_state_initialization(EncodedAuthorities, State) ->
-    case new_shared_state(EncodedAuthorities) of
+handle_shared_state_initialization(AuthoritiesUpdate, State) ->
+    case new_shared_state(AuthoritiesUpdate) of
         {ok, Key} ->
             ?assert( ets:insert_new(?INFO_TABLE, [{latest_shared_state_key, Key}]) ),
             proc_lib:init_ack({ok, self()}),
@@ -235,8 +258,18 @@ handle_shared_state_initialization(EncodedAuthorities, State) ->
             {stop, normal, State}
     end.
 
-handle_shared_state_update(EncodedAuthorities, State) ->
-    case new_shared_state(EncodedAuthorities) of
+handle_potential_shared_state_update(#{datetime := DateTime} = AuthoritiesUpdate, State) ->
+    LatestSharedState = get_latest_shared_state(),
+    case DateTime >= LatestSharedState#shared_state.authorities_datetime of
+        true ->
+            handle_shared_state_update(AuthoritiesUpdate, State);
+        false ->
+            % FIXME log warning on update dismissal
+            {reply, ok, State}
+    end.
+
+handle_shared_state_update(AuthoritiesUpdate, State) ->
+    case new_shared_state(AuthoritiesUpdate) of
         {ok, Key} ->
             ets:insert(?INFO_TABLE, [{latest_shared_state_key, Key}]),
             {reply, ok, State};
@@ -244,11 +277,17 @@ handle_shared_state_update(EncodedAuthorities, State) ->
             {reply, Error, State}
     end.
 
-new_shared_state(EncodedAuthorities) ->
+new_shared_state(AuthoritiesUpdate) ->
+    #{url := AuthoritiesURL,
+      datetime := AuthoritiesDateTime,
+      encoded_list := EncodedAuthorities} = AuthoritiesUpdate,
+
     case tls_certificate_check_util:parse_encoded_authorities(EncodedAuthorities) of
         {ok, AuthoritativeCertificateValues} ->
             NewSharedState
                 = #shared_state{
+                     authorities_url = AuthoritiesURL,
+                     authorities_datetime = AuthoritiesDateTime,
                      authoritative_certificate_values = AuthoritativeCertificateValues,
                      trusted_public_keys = trusted_public_keys(AuthoritativeCertificateValues)
                     },
@@ -285,20 +324,24 @@ canonical_shared_state_representation(SharedState) ->
     TupleIndices = lists:seq(1, tuple_size(SharedState)),
     TupleValues = tuple_to_list(SharedState),
     KvPairs = lists:zip(TupleIndices, TupleValues),
-    lists:map(
+    lists:filtermap(
       fun ({1, RecordTag}) ->
-              RecordTag;
+              {true, RecordTag};
+          ({#shared_state.authorities_url, _AuthoritiesURL}) ->
+              false;
+          ({#shared_state.authorities_datetime, _AuthoritiesDateTime}) ->
+              false;
           ({#shared_state.authoritative_certificate_values, AuthoritativeCertificateValues}) ->
               % Order matters - or rather, if the order is to change,
               % this should not provoke a VM-wide garbage collection
               % with a potentially disastrous explosion in memory
               % consumption.
-              AuthoritativeCertificateValues;
+              {true, AuthoritativeCertificateValues};
           ({#shared_state.trusted_public_keys, TrustedPublicKeys}) ->
               % `term_to_binary/1' doesn't guarantee any particular encoding order;
               % therefore equivalent shared states could end up under different keys
               % (depending on VM implementation)
-              lists:sort( maps:to_list(TrustedPublicKeys) )
+              {true, lists:sort( maps:to_list(TrustedPublicKeys) )}
       end,
       KvPairs).
 

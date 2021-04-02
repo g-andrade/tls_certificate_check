@@ -50,11 +50,11 @@
 -ifdef(HARDCODED_AUTHORITIES_UPDATER_SUPPORTED).
 
 -spec main([string(), ...]) -> no_return().
-main([AuthoritiesFilePath, AuthoritiesSource, OutputModuleFilePath, ChangelogFilePath]) ->
+main([AuthoritiesFilePath, AuthoritiesURL, OutputModuleFilePath, ChangelogFilePath]) ->
     OutputModuleName = output_module_name(OutputModuleFilePath),
 
     read_authorities_date(#{authorities_file_path => AuthoritiesFilePath,
-                            authorities_source => AuthoritiesSource,
+                            authorities_url => AuthoritiesURL,
                             output_module_file_path => OutputModuleFilePath,
                             output_module_name => OutputModuleName,
                             changelog_file_path => ChangelogFilePath});
@@ -156,7 +156,7 @@ current_code(#{output_module_file_path := OutputModuleFilePath}) ->
             ""
     end.
 
-generate_code(#{authorities_source := AuthoritiesSource,
+generate_code(#{authorities_url := AuthoritiesURL,
                 authorities_date := AuthoritiesDate,
                 encoded_authorities := EncodedAuthorities,
                 output_module_name := OutputModuleName}) ->
@@ -195,7 +195,7 @@ generate_code(#{authorities_source := AuthoritiesSource,
       "\n"
       "%% Automatically generated; do not edit.\n"
       "%%\n"
-      "%% Source: ~ts\n"
+      "%% URL: ~ts\n"
       "%% Date: ~ts\n"
       "\n"
       "%% ------------------------------------------------------------------\n"
@@ -203,12 +203,21 @@ generate_code(#{authorities_source := AuthoritiesSource,
       "%% ------------------------------------------------------------------\n"
       "\n"
       "-export(\n"
-      "    [encoded_list/0\n"
+      "    [full_info/0,\n"
+      "     encoded_list/0\n"
       "     ]).\n"
       "\n"
       "%% ------------------------------------------------------------------\n"
       "%% API Function Definitions\n"
       "%% ------------------------------------------------------------------\n"
+      "\n"
+      "-dialyzer({nowarn_function, full_info/0}).\n"
+      "-spec full_info() -> tls_certificate_check_shared_state:authorities_update().\n"
+      "\n"
+      "full_info() ->\n"
+      "    #{url => ~p,\n"
+      "      datetime => ~p,\n"
+      "      encoded_list => encoded_list()}.\n"
       "\n"
       "-dialyzer({nowarn_function, encoded_list/0}).\n"
       "-spec encoded_list() -> binary().\n"
@@ -234,16 +243,17 @@ generate_code(#{authorities_source := AuthoritiesSource,
       "-spec maybe_update_shared_state() -> ok | {error, term()}.\n"
       "maybe_update_shared_state() ->\n"
       "    % For code swaps / release upgrades\n"
-      "    EncodedCertificates = encoded_list(),\n"
-      "    tls_certificate_check_shared_state:maybe_update_shared_state(EncodedCertificates).\n"
+      "    tls_certificate_check_shared_state:maybe_update_shared_state(full_info()).\n"
       "\n"
       "encoded_list_() ->\n"
       "~ts",
 
       [CopyrightYearString,
        OutputModuleName,
-       AuthoritiesSource,
+       AuthoritiesURL,
        format_date(AuthoritiesDate),
+       AuthoritiesURL,
+       AuthoritiesDate,
        EncodedAuthoritiesFormattedString]).
 
 copyright_year_string(CurrentYear)
@@ -296,7 +306,7 @@ compute_differences(UpdateArgs) ->
     case file:read_file(ChangelogFilePath) of
         {ok, Changelog} ->
             {UpdatedChangelog, NewVersionString}
-                = updated_changelog(UpdateArgs, Changelog, Additions, Removals),
+                = maybe_updated_changelog(UpdateArgs, Changelog, Additions, Removals),
 
             {length(Additions), length(Removals), UpdatedChangelog, NewVersionString};
 
@@ -323,6 +333,14 @@ previous_authoritative_certificate_values(#{output_module_name := OutputModuleNa
     catch
         error:undef ->
             []
+    end.
+
+maybe_updated_changelog(UpdateArgs, Changelog, Additions, Removals) ->
+    case os:getenv("NO_CHANGELOG_UPDATE") =:= "1" of
+        true ->
+            {Changelog, none};
+        false ->
+            updated_changelog(UpdateArgs, Changelog, Additions, Removals)
     end.
 
 updated_changelog(UpdateArgs, Changelog, Additions, Removals) ->
@@ -393,7 +411,7 @@ changelog_additions_string(Additions) ->
      ).
 
 changelog_changes_string(UpdateArgs) ->
-    #{authorities_source := AuthoritiesSource,
+    #{authorities_url := AuthoritiesURL,
       authorities_date := AuthoritiesDate} = UpdateArgs,
 
     io_lib:format(
@@ -402,7 +420,7 @@ changelog_changes_string(UpdateArgs) ->
       "\n"
       "- module with bundled CAs to latest as of ~ts\n"
       "(source: ~ts)\n",
-      [format_date(AuthoritiesDate), AuthoritiesSource]).
+      [format_date(AuthoritiesDate), AuthoritiesURL]).
 
 changelog_removals_string([]) ->
     "";
@@ -479,7 +497,8 @@ write_updated_changelog(#{changelog_file_path := ChangelogFilePath}, UpdatedChan
 
 succeed(Fmt, Args, NewVersionString) ->
     io:format(standard_error, "[updated] " ++ Fmt ++ "~n", Args),
-    io:format("updated: ~ts~n", [NewVersionString]),
+    _ = (NewVersionString =/= none
+         andalso io:format("updated: ~ts~n", [NewVersionString])),
     halt_(0).
 
 fail(Fmt, Args) ->
