@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## [Unreleased]
 
+### Added
+
+- `tls_certificate_check:trusted_authorities/0` to API
+
 ### Changed
 
 - list of authoritative certificates, from hardcoded to one that's generated on application boot

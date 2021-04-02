@@ -20,16 +20,22 @@
 
 -module(tls_certificate_check).
 
+-ifdef(TEST).
+-include_lib("eunit/include/eunit.hrl").
+-endif.
+
 %% ------------------------------------------------------------------
 %% API Function Exports
 %% ------------------------------------------------------------------
 
 -export(
-   [options/1
+   [options/1,
+    trusted_authorities/0
    ]).
 
 -ignore_xref(
-   [options/1
+   [options/1,
+    trusted_authorities/0
    ]).
 
 %% ------------------------------------------------------------------
@@ -72,8 +78,7 @@
 options(Target) ->
     try target_to_hostname(Target) of
         Hostname ->
-            AuthoritativeCertificateValues
-                = tls_certificate_check_shared_state:authoritative_certificate_values(),
+            CAs = trusted_authorities(),
             CertificateVerificationFunOptions = [{check_hostname, Hostname}],
             CertificateVerificationFun = {fun ssl_verify_hostname:verify_fun/3,
                                           CertificateVerificationFunOptions},
@@ -81,7 +86,7 @@ options(Target) ->
             HostnameCheckOptions = hostname_check_opts(),
             [{verify, verify_peer},
              {depth, ?DEFAULT_MAX_CERTIFICATE_CHAIN_DEPTH},
-             {cacerts, AuthoritativeCertificateValues},
+             {cacerts, CAs},
              {partial_chain,
                 fun tls_certificate_check_shared_state:find_trusted_authority/1},
              {verify_fun, CertificateVerificationFun}
@@ -90,6 +95,12 @@ options(Target) ->
         http_target ->
             []
     end.
+
+%% @doc Returns the list of trusted authorities.
+-spec trusted_authorities() -> CAs
+      when CAs :: [public_key:der_encoded(), ...].
+trusted_authorities() ->
+    tls_certificate_check_shared_state:authoritative_certificate_values().
 
 %% ------------------------------------------------------------------
 %% Internal Function Definitions
@@ -112,3 +123,14 @@ hostname_check_opts() ->
     Protocol = https,
     MatchFun = public_key:pkix_verify_hostname_match_fun(Protocol),
     [{customize_hostname_check, [{match_fun, MatchFun}]}].
+
+%% ------------------------------------------------------------------
+%% Unit Test Definitions
+%% ------------------------------------------------------------------
+-ifdef(TEST).
+
+trusted_authorities_is_exported_test() ->
+    {ok, _} = application:ensure_all_started(tls_certificate_check),
+    ?assertMatch([_|_], ?MODULE:trusted_authorities()).
+
+-endif. % -ifdef(TEST).

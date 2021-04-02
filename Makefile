@@ -52,7 +52,7 @@ xref: $(REBAR3)
 	@$(REBAR3) as hardcoded_authorities_update xref
 
 test: $(REBAR3)
-	@$(REBAR3) do ct, cover
+	@$(REBAR3) do eunit, ct, cover
 
 cover: test
 
