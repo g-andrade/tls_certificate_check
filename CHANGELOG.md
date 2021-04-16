@@ -5,6 +5,25 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
+## [1.4.0] - 2021-04-16
+
+### Added
+
+- [certificate authority] globalsign root e46
+- [certificate authority] AC RAIZ FNMT-RCM SERVIDORES SEGUROS
+- [certificate authority] globalsign root r46
+
+### Changed
+
+- module with bundled CAs to latest as of 2021/04/13, 03:12 UTC
+(source: https://curl.se/ca/cacert.pem)
+
+### Removed
+
+- [certificate authority] geotrust primary certification authority - g2
+- [certificate authority] verisign universal root certification authority
+- [certificate authority] Staat der Nederlanden Root CA - G3
+
 ## [1.3.0] - 2021-04-02
 
 ### Added
