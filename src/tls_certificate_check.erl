@@ -50,11 +50,7 @@
 %% Record and Type Definitions
 %% ------------------------------------------------------------------
 
--ifdef(SSL_OLD_CLIENT_OPTIONS).
--type option() :: ssl:connect_option().
--else.
 -type option() :: ssl:tls_client_option().
--endif.
 -export_type([option/0]).
 
 %% ------------------------------------------------------------------

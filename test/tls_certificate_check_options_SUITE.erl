@@ -23,8 +23,6 @@
 
 -include_lib("stdlib/include/assert.hrl").
 
--define(OTP_21_3__INITIAL_SSL_VERSION, [9,2]).
-
 %% ------------------------------------------------------------------
 %% Setup
 %% ------------------------------------------------------------------
@@ -125,42 +123,22 @@ disorderly_certificate_chain_test(_Config) ->
 expired_certificate_test(groups) ->
     {all_but, [http_url_target]};
 expired_certificate_test(Config) ->
-    case ssl_app_version() >= ?OTP_21_3__INITIAL_SSL_VERSION of
-        true ->
-            ?expect_tls_alert(Config, "expired.badssl.com", {certificate_expired, _});
-        false ->
-            ?expect_tls_alert(Config, "expired.badssl.com", "certificate expired")
-    end.
+    ?expect_tls_alert(Config, "expired.badssl.com", {certificate_expired, _}).
 
 wrong_host_certificate_test(groups) ->
     {all_but, [http_url_target]};
 wrong_host_certificate_test(Config) ->
-    case ssl_app_version() >= ?OTP_21_3__INITIAL_SSL_VERSION of
-        true ->
-            ?expect_tls_alert(Config, "wrong.host.badssl.com", {handshake_failure, _});
-        false ->
-            ?expect_tls_alert(Config, "wrong.host.badssl.com", "handshake failure")
-    end.
+    ?expect_tls_alert(Config, "wrong.host.badssl.com", {handshake_failure, _}).
 
 self_signed_certificate_test(groups) ->
     {all_but, [http_url_target]};
 self_signed_certificate_test(Config) ->
-    case ssl_app_version() >= ?OTP_21_3__INITIAL_SSL_VERSION of
-        true ->
-            ?expect_tls_alert(Config, "self-signed.badssl.com", {bad_certificate, _});
-        false ->
-            ?expect_tls_alert(Config, "self-signed.badssl.com", "bad certificate")
-    end.
+    ?expect_tls_alert(Config, "self-signed.badssl.com", {bad_certificate, _}).
 
 unknown_authority_test(groups) ->
     {all_but, [http_url_target]};
 unknown_authority_test(Config) ->
-    case ssl_app_version() >= ?OTP_21_3__INITIAL_SSL_VERSION of
-        true ->
-            ?expect_tls_alert(Config, "untrusted-root.badssl.com", {unknown_ca, _});
-        false ->
-            ?expect_tls_alert(Config, "untrusted-root.badssl.com", "unknown ca")
-    end.
+    ?expect_tls_alert(Config, "untrusted-root.badssl.com", {unknown_ca, _}).
 
 %% ------------------------------------------------------------------
 %% Internal
