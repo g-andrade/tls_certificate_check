@@ -115,11 +115,6 @@ good_certificate_test(groups) ->
 good_certificate_test(Config) ->
     ?expect_success(Config, "badssl.com").
 
-disorderly_certificate_chain_test(groups) ->
-    {all_but, [http_url_target]};
-disorderly_certificate_chain_test(_Config) ->
-    {skip, "Dependent on https://github.com/chromium/badssl.com/pull/443 being approved"}.
-
 expired_certificate_test(groups) ->
     {all_but, [http_url_target]};
 expired_certificate_test(Config) ->
