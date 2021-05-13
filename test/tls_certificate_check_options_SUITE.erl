@@ -144,13 +144,6 @@ unknown_authority_test(Config) ->
 %% Internal
 %% ------------------------------------------------------------------
 
-ssl_app_version() ->
-    {ok, _} = application:ensure_all_started(ssl),
-    {ssl, _, VersionStr} = lists:keyfind(ssl, 1, application:which_applications()),
-    VersionBin = list_to_binary(VersionStr),
-    Parts = binary:split(VersionBin, <<".">>, [global]),
-    lists:map(fun binary_to_integer/1, Parts).
-
 httpc_http_opts(Config, Host) ->
     CheckTarget = check_target(Config, Host),
     CheckOpts = tls_certificate_check:options(CheckTarget),
