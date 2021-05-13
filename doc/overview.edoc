@@ -33,7 +33,7 @@ starts and made available to the API through
 <pre lang="erlang" class="erlang">
 {deps,
  [% [...]
-  {tls_certificate_check, "~> 1.4"}
+  {tls_certificate_check, "~> 1.5"}
   ]}.
 </pre>
 </details>
@@ -68,7 +68,7 @@ ssl:connect(Host, 443, Options, 5000)
   defp deps do
     [
       # [...]
-      {:tls_certificate_check, "~> 1.4"}
+      {:tls_certificate_check, "~> 1.5"}
     ]
   end
 </pre>
@@ -90,7 +90,7 @@ The API reference can be found on
 <h3>Tested setup</h3>
 
 <ul>
-<li>Erlang/OTP 21.2 or newer</li>
+<li>Erlang/OTP 22 or newer</li>
 <li>rebar3</li>
 </ul>
 

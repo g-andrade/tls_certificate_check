@@ -31,7 +31,7 @@ rebar.config
 ``` erlang
 {deps,
  [% [...]
-  {tls_certificate_check, "~> 1.4"}
+  {tls_certificate_check, "~> 1.5"}
   ]}.
 ```
 
@@ -64,7 +64,7 @@ mix.exs
   defp deps do
     [
       # [...]
-      {:tls_certificate_check, "~> 1.4"}
+      {:tls_certificate_check, "~> 1.5"}
     ]
   end
 ```
@@ -84,7 +84,7 @@ The API reference can be found on
 
 ### Tested setup
 
-  - Erlang/OTP 21.2 or newer
+  - Erlang/OTP 22 or newer
   - rebar3
 
 ### License
