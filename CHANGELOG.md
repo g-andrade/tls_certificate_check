@@ -5,6 +5,18 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
+## [1.6.0] - 2021-05-30
+
+### Changed
+
+- module with bundled CAs to latest as of 2021/05/25, 03:12 UTC
+(source: https://curl.se/ca/cacert.pem)
+
+### Removed
+
+- [certificate authority] global chambersign root - 2008
+- [certificate authority] chambers of commerce root - 2008
+
 ## [1.5.0] - 2021-05-13
 
 ### Added
