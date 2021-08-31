@@ -33,6 +33,7 @@ AUTHORITIES_MODULE = src/tls_certificate_check_hardcoded_authorities.erl
 
 .ONESHELL:
 
+
 all: build
 
 build: $(REBAR3)
@@ -97,4 +98,4 @@ invoke-hardcoded-authorities-updater: hardcoded-authorities-updater
 		"$(AUTHORITIES_URL)" \
 		"$(AUTHORITIES_MODULE)" \
 		"CHANGELOG.md" \
-		|| @exit $(.SHELLSTATUS)
+		|| exit $(.SHELLSTATUS)
