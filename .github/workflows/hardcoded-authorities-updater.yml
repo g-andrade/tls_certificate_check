@@ -1,0 +1,24 @@
+---
+#
+# Based on:
+# * https://github.com/elixir-mint/castore/tree/v0.1.11/.github/workflows
+#
+name: Check for updates to hardcoded CAs
+on:
+  schedule:
+    - cron: '23 10 * * 1-5'
+  workflow_dispatch:
+jobs:
+  outdated:
+    name: Check for updates to hardcoded CAs
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - uses: erlef/setup-elixir@v1
+        with:
+          otp-version: 24.0
+          rebar3-version: 3.16
+      - run: |
+          .github/workflows/hardcoded-authorities-updater.sh
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

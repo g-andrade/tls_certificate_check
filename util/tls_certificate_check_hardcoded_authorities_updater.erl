@@ -361,19 +361,16 @@ updated_changelog_at_position(UpdateArgs, Changelog, LastReleasePos,
     <<DataBefore:LastReleasePos/bytes, DataAfter/bytes>> = Changelog,
 
     NewVersionString = io_lib:format("~b.~b.~b", [MajorVersion, NewMinorVersion, NewPatchVersion]),
-    {{CurrentYear, CurrentMonth, CurrentDay}, _} = calendar:local_time(),
     UpdatedChangelog
         = unicode:characters_to_binary(
             [DataBefore,
              io_lib:format(
-               "## [~ts] - ~4..0b-~2..0b-~2..0b\n"
+               "## [Unreleased]\n"
                "~ts"
                "~ts"
                "~ts"
                "\n",
-               [NewVersionString,
-                CurrentYear, CurrentMonth, CurrentDay,
-                changelog_additions_string(Additions),
+               [changelog_additions_string(Additions),
                 changelog_changes_string(UpdateArgs),
                 changelog_removals_string(Removals)
                ]),
