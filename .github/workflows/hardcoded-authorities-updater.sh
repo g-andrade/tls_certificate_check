@@ -13,8 +13,7 @@ set -eux
 # this mirrors "util/tls_certificate_check_hardcoded_authorities_updater.erl"
 UPDATED_STATUS_CODE=42
 
-_DUMMY_VAR_TO_HANDLE_EXIT=$(make hardcoded-authorities-update)
-UPDATE_STATUS=$?
+UPDATE_STATUS=$((make hardcoded-authorities-update 1>&2 && echo 0) || echo $?)
 
 if [ ! $UPDATE_STATUS -eq $UPDATED_STATUS_CODE ]; then
     exit $UPDATE_STATUS
