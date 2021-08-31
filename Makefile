@@ -94,5 +94,5 @@ invoke-hardcoded-authorities-updater: hardcoded-authorities-updater
 		"$(AUTHORITIES_FILE)" \
 		"$(AUTHORITIES_URL)" \
 		"$(AUTHORITIES_MODULE)" \
-		"CHANGELOG.md"
-	@exit $(.SHELLSTATUS)
+		"CHANGELOG.md" \
+		|| @exit $(.SHELLSTATUS)
