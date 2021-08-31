@@ -28,11 +28,12 @@ if git branch -a | grep "${BRANCH}" >/dev/null; then
     exit
 fi
 
+ORIGIN=github
 PR_TITLE="[test] Update bundled CAs to latest as of $DATE"
 git checkout -b "$BRANCH"
 git add .
 git commit -a -m "${PR_TITLE}"
-git push --force origin "$BRANCH"
+git push --force "$ORIGIN" "$BRANCH"
 
 PR_LABEL="hardcoded authorities update"
 if gh pr list --label "$PR_LABEL" | grep -v "${PR_TITLE}" >/dev/null; then
