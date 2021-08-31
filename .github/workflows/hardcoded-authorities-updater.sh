@@ -22,13 +22,13 @@ if [[ -z $(git status -s) ]]; then
 fi
 
 DATE=$(date -r tmp/cacerts.pem '+%Y/%m/%d') # linux-specific
-BRANCH=automation/hardcoded-authorities-update/$(DATE)
+BRANCH=automation/hardcoded-authorities-update/$DATE
 if git branch -a | grep "${BRANCH}" >/dev/null; then
     # update branch already open
     exit
 fi
 
-PR_TITLE="[test] Update bundled CAs to latest as of $(DATE)"
+PR_TITLE="[test] Update bundled CAs to latest as of $DATE"
 git checkout -b "$BRANCH"
 git add .
 git commit -a -m "${PR_TITLE}"
