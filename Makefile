@@ -31,6 +31,8 @@ AUTHORITIES_MODULE = src/tls_certificate_check_hardcoded_authorities.erl
 
 .NOTPARALLEL: check
 
+.ONESHELL:
+
 all: build
 
 build: $(REBAR3)
