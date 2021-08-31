@@ -41,8 +41,7 @@
 %% Macro Definitions
 %% ------------------------------------------------------------------
 
--define(FAILURE_STATUS_CODE, 24).
--define(UPDATED_STATUS_CODE, 42).
+-define(FAILURE_STATUS_CODE, 1).
 
 %% ------------------------------------------------------------------
 %% API Function Definitions
@@ -481,7 +480,7 @@ write_updated_changelog(#{changelog_file_path := ChangelogFilePath}, UpdatedChan
 succeed(Fmt, Args, NewVersionString) ->
     io:format(standard_error, "[updated] " ++ Fmt ++ "~n", Args),
     io:format("updated: ~ts~n", [NewVersionString]),
-    halt_(?UPDATED_STATUS_CODE).
+    halt_(0).
 
 fail(Fmt, Args) ->
     io:format(standard_error, "[error] " ++ Fmt ++ "~n", Args),
