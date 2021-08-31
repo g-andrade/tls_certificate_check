@@ -28,7 +28,7 @@ if git branch -a | grep "${BRANCH}" >/dev/null; then
     exit
 fi
 
-ORIGIN=github
+ORIGIN=origin
 PR_TITLE="[test] Update bundled CAs to latest as of $DATE"
 git checkout -b "$BRANCH"
 git add .
