@@ -7,6 +7,7 @@ name: Hardcoded authorities updater
 on:
   schedule:
     - cron: '* * * * *' # FIXME lower to once a day once we confirm that it works
+  workflow_dispatch:
 jobs:
   outdated:
     name: Check for updates to hardcoded CAs
