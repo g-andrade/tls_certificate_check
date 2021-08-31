@@ -31,6 +31,9 @@ AUTHORITIES_MODULE = src/tls_certificate_check_hardcoded_authorities.erl
 
 .NOTPARALLEL: check
 
+.ONESHELL:
+
+
 all: build
 
 build: $(REBAR3)
@@ -80,7 +83,7 @@ hardcoded-authorities-update: download-latest-authorities
 hardcoded-authorities-update:
 	@make invoke-hardcoded-authorities-updater
 
-hardcoded-authorities-updater:
+hardcoded-authorities-updater: $(REBAR3)
 	@$(REBAR3) as hardcoded_authorities_update escriptize
 
 download-latest-authorities:
@@ -94,4 +97,5 @@ invoke-hardcoded-authorities-updater: hardcoded-authorities-updater
 		"$(AUTHORITIES_FILE)" \
 		"$(AUTHORITIES_URL)" \
 		"$(AUTHORITIES_MODULE)" \
-		"CHANGELOG.md"
+		"CHANGELOG.md" \
+		|| exit $(.SHELLSTATUS)
