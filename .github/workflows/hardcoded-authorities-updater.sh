@@ -10,23 +10,28 @@ set -eux
 #git config user.name "GitHub Actions"
 #git config user.email "actions@users.noreply.github.com"
 
-# this mirrors "util/tls_certificate_check_hardcoded_authorities_updater.erl"
-UPDATED_STATUS_CODE=42
+BASE_BRANCH=test/automation-of-hardcoded-authorities-update
+git checkout "${BASE_BRANCH}"
+git reset --hard
+git clean -ffdx
 
-UPDATE_STATUS=$((make hardcoded-authorities-update 1>&2 && echo 0) || echo $?)
-
-if [ ! $UPDATE_STATUS -eq $UPDATED_STATUS_CODE ]; then
-    exit $UPDATE_STATUS
+make hardcoded-authorities-update
+if [[ -z $(git status -s) ]]; then
+    # no update
+    exit
 fi
 
 DATE=$(date -r tmp/cacerts.pem '+%Y/%m/%d') # linux-specific
-BASE_BRANCH=test/automation-of-hardcoded-authorities-update
 BRANCH=automation/hardcoded-authorities-update/$(DATE)
-PR_TITLE="[test] Update bundled CAs to latest as of $(DATE)"
+if git branch -a | grep "${BRANCH}" >/dev/null; then
+    # update branch already open
+    exit
+fi
 
-git checkout -b "$BRANCH" "${BASE_BRANCH}"
+PR_TITLE="[test] Update bundled CAs to latest as of $(DATE)"
+git checkout -b "$BRANCH"
 git add .
-git commit -m "${PR_TITLE}"
+git commit -a -m "${PR_TITLE}"
 git push --force origin "$BRANCH"
 
 PR_LABEL="hardcoded authorities update"
