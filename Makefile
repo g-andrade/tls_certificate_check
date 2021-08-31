@@ -80,7 +80,7 @@ hardcoded-authorities-update: download-latest-authorities
 hardcoded-authorities-update:
 	@make invoke-hardcoded-authorities-updater
 
-hardcoded-authorities-updater:
+hardcoded-authorities-updater: $(REBAR3)
 	@$(REBAR3) as hardcoded_authorities_update escriptize
 
 download-latest-authorities:
