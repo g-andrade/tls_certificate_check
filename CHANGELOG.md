@@ -5,6 +5,26 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
+## [1.7.0] - 2021-08-31
+
+### Added
+
+- [certificate authority] certum ec-384 ca
+- [certificate authority] globaltrust 2020
+- [certificate authority] certum trusted root ca
+- [certificate authority] anf secure server root ca
+
+### Changed
+
+- module with bundled CAs to latest as of 2021/07/05, 21:35 UTC
+(source: https://curl.se/ca/cacert.pem)
+
+### Removed
+
+- [certificate authority] sonera class2 ca
+- [certificate authority] trustis fps root ca
+- [certificate authority] quovadis root certification authority
+
 ## [1.6.0] - 2021-05-30
 
 ### Changed
