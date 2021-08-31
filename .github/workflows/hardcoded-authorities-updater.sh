@@ -36,7 +36,7 @@ git commit -a -m "${PR_TITLE}"
 git push --force "$ORIGIN" "$BRANCH"
 
 PR_LABEL="hardcoded authorities update"
-if gh pr list --label "$PR_LABEL" | grep -v "${PR_TITLE}" >/dev/null; then
+if ! gh pr list --label "$PR_LABEL" | grep "${PR_TITLE}" >/dev/null; then
     gh pr create --fill \
         --title "${PR_TITLE}" \
         --label "${PR_LABEL}" \
