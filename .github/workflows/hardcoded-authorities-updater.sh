@@ -39,7 +39,7 @@ PR_LABEL="hardcoded authorities update"
 if ! gh pr list --state open --label "$PR_LABEL" | grep "${PR_TITLE}" >/dev/null; then
     gh pr create --fill \
         --title "${PR_TITLE}" \
-        --body "-" \
+        --body "Stay safe 🔐" \
         --label "${PR_LABEL}" \
         --reviewer "g-andrade"
 fi

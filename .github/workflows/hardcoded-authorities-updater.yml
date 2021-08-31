@@ -3,7 +3,7 @@
 # Based on:
 # * https://github.com/elixir-mint/castore/tree/v0.1.11/.github/workflows
 #
-name: Hardcoded authorities updater
+name: Check for updates to hardcoded CAs
 on:
   schedule:
     - cron: '* * * * *' # FIXME lower to once a day once we confirm that it works
