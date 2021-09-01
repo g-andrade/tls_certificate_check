@@ -45,6 +45,7 @@ localhost_chain_for_cross_signing: cross_signed_good_intermediate_cert
 
 localhost: regular_intermediate_cert
 localhost: localhost.csr
+localhost: faketime
 localhost:
 	faketime -f '-5y' openssl x509 \
 		-req \
@@ -59,6 +60,7 @@ localhost:
 
 regular_intermediate_cert: new_ca
 regular_intermediate_cert: regular_intermediate_cert.csr
+regular_intermediate_cert: faketime
 	faketime -f '-5y' openssl x509 \
 		-req \
 		-in regular_intermediate_cert.csr \
@@ -74,6 +76,7 @@ regular_intermediate_cert: regular_intermediate_cert.csr
 
 cross_signed_bad_intermediate_cert: expired_ca
 cross_signed_bad_intermediate_cert: new_ca.csr
+cross_signed_bad_intermediate_cert: faketime
 	faketime -f '-5y' openssl x509 \
 		-req \
 		-in new_ca.csr \
@@ -89,6 +92,7 @@ cross_signed_bad_intermediate_cert: new_ca.csr
 
 cross_signed_good_intermediate_cert: third_ca
 cross_signed_good_intermediate_cert: new_ca.csr
+cross_signed_good_intermediate_cert: faketime
 	faketime -f '-5y' openssl x509 \
 		-req \
 		-in new_ca.csr \
@@ -102,7 +106,7 @@ cross_signed_good_intermediate_cert: new_ca.csr
 		-sha256
 .PHONY: cross_signed_good_intermediate_cert
 
-expired_ca: faketime 
+expired_ca: faketime
 expired_ca: expired_ca_key.pem
 	faketime -f '-5y' openssl req -x509 \
 		-new -nodes \
@@ -119,6 +123,7 @@ faketime:
 
 .PRECIOUS: %_ca # prevens removal of what is considered an intermediate file (FIXME untested on macos)
 %_ca: %_ca_key.pem
+%_ca: faketime
 	faketime -f '-5y' openssl req -x509 \
 		-new -nodes \
 		-key $*_ca_key.pem \
