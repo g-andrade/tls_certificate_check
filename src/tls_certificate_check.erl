@@ -80,13 +80,12 @@ options(Target) ->
                                           CertificateVerificationFunOptions},
 
             HostnameCheckOptions = hostname_check_opts(),
-            [{verify, verify_peer},
-             {depth, ?DEFAULT_MAX_CERTIFICATE_CHAIN_DEPTH},
-             {cacerts, CAs},
-             {partial_chain,
-                fun tls_certificate_check_shared_state:find_trusted_authority/1},
-             {verify_fun, CertificateVerificationFun}
-             | HostnameCheckOptions]
+            maybe_with_partial_chain(
+              [{verify, verify_peer},
+               {depth, ?DEFAULT_MAX_CERTIFICATE_CHAIN_DEPTH},
+               {cacerts, CAs},
+               {verify_fun, CertificateVerificationFun}
+               | HostnameCheckOptions])
     catch
         http_target ->
             []
@@ -119,6 +118,18 @@ hostname_check_opts() ->
     Protocol = https,
     MatchFun = public_key:pkix_verify_hostname_match_fun(Protocol),
     [{customize_hostname_check, [{match_fun, MatchFun}]}].
+
+-ifdef(PARTIAL_CHAIN_NEEDED).
+maybe_with_partial_chain(OtherOpts) ->
+    [{partial_chain, fun tls_certificate_check_shared_state:find_trusted_authority/1}
+     | OtherOpts].
+-else.
+maybe_with_partial_chain(OtherOpts) ->
+    % * https://github.com/elixir-mint/mint/pull/328
+    % * https://blog.voltone.net/post/30
+    % * https://erlang.org/pipermail/erlang-questions/2021-July/101252.html
+    OtherOpts.
+-endif.
 
 %% ------------------------------------------------------------------
 %% Unit Test Definitions

@@ -33,13 +33,24 @@
    [child_spec/0,
     start_link/0,
     authoritative_certificate_values/0,
-    find_trusted_authority/1,
     maybe_update_shared_state/1
    ]).
 
 -ignore_xref(
    [start_link/0
    ]).
+
+%% ------------------------------------------------------------------
+%% Conditional API Function Exports
+%% ------------------------------------------------------------------
+
+-ifdef(PARTIAL_CHAIN_NEEDED).
+
+-export(
+   [find_trusted_authority/1
+   ]).
+
+-endif.
 
 %%-------------------------------------------------------------------
 %% OTP Process Function Exports
@@ -99,12 +110,20 @@
          }).
 -type state() :: #state{}.
 
+-ifdef(PARTIAL_CHAIN_NEEDED).
 -record(shared_state, {
           authoritative_certificate_values :: [public_key:der_encoded(), ...],
           trusted_public_keys :: #{public_key_info() := []}
          }).
 
 -type public_key_info() :: #'OTPSubjectPublicKeyInfo'{}.
+
+-else.
+-record(shared_state, {
+          authoritative_certificate_values :: [public_key:der_encoded(), ...]
+         }).
+
+-endif. % ifdef(PARTIAL_CHAIN_NEEDED)
 
 %% ------------------------------------------------------------------
 %% API Function Definitions
@@ -126,6 +145,21 @@ authoritative_certificate_values() ->
     SharedState = get_latest_shared_state(),
     SharedState#shared_state.authoritative_certificate_values.
 
+-spec maybe_update_shared_state(binary()) -> ok | {error, term()}.
+maybe_update_shared_state(EncodedAuthorities) ->
+    try
+        gen_server:call(?SERVER, {update_shared_state, EncodedAuthorities}, infinity)
+    catch
+        exit:{noproc, {gen_server, call, [?SERVER | _]}} ->
+            ok
+    end.
+
+%% ------------------------------------------------------------------
+%% Conditional API Function Definitions
+%% ------------------------------------------------------------------
+
+-ifdef(PARTIAL_CHAIN_NEEDED).
+
 -spec find_trusted_authority([public_key:der_encoded()])
         -> {trusted_ca, public_key:der_encoded()}
            | unknown_ca
@@ -135,14 +169,7 @@ find_trusted_authority(EncodedCertificates) ->
     TrustedPublicKeys = SharedState#shared_state.trusted_public_keys,
     find_trusted_authority_recur(EncodedCertificates, TrustedPublicKeys).
 
--spec maybe_update_shared_state(binary()) -> ok | {error, term()}.
-maybe_update_shared_state(EncodedAuthorities) ->
-    try
-        gen_server:call(?SERVER, {update_shared_state, EncodedAuthorities}, infinity)
-    catch
-        exit:{noproc, {gen_server, call, [?SERVER | _]}} ->
-            ok
-    end.
+-endif. % ifdef(PARTIAL_CHAIN_NEEDED).
 
 %% ------------------------------------------------------------------
 %% OTP Process Function Definitions
@@ -247,15 +274,19 @@ handle_shared_state_update(EncodedAuthorities, State) ->
 new_shared_state(EncodedAuthorities) ->
     case tls_certificate_check_util:parse_encoded_authorities(EncodedAuthorities) of
         {ok, AuthoritativeCertificateValues} ->
-            NewSharedState
-                = #shared_state{
-                     authoritative_certificate_values = AuthoritativeCertificateValues,
-                     trusted_public_keys = trusted_public_keys(AuthoritativeCertificateValues)
-                    },
+            NewSharedState = new_shared_state_(AuthoritativeCertificateValues),
             save_shared_state(NewSharedState);
         {error, Reason} ->
             {error, {failed_to_decode_authorities, Reason}}
     end.
+
+
+-ifdef(PARTIAL_CHAIN_NEEDED).
+new_shared_state_(AuthoritativeCertificateValues) ->
+    #shared_state{
+       authoritative_certificate_values = AuthoritativeCertificateValues,
+       trusted_public_keys = trusted_public_keys(AuthoritativeCertificateValues)
+      }.
 
 trusted_public_keys(AuthoritativeCertificateValues) ->
     lists:foldl(
@@ -266,6 +297,14 @@ trusted_public_keys(AuthoritativeCertificateValues) ->
               maps:put(PKI, [], Acc)
       end,
       #{}, AuthoritativeCertificateValues).
+
+-else.
+new_shared_state_(AuthoritativeCertificateValues) ->
+    #shared_state{
+       authoritative_certificate_values = AuthoritativeCertificateValues
+      }.
+
+-endif. % -ifdef(PARTIAL_CHAIN_NEEDED)
 
 save_shared_state(SharedState) ->
     Key = shared_state_key(SharedState),
@@ -285,22 +324,42 @@ canonical_shared_state_representation(SharedState) ->
     TupleIndices = lists:seq(1, tuple_size(SharedState)),
     TupleValues = tuple_to_list(SharedState),
     KvPairs = lists:zip(TupleIndices, TupleValues),
-    lists:map(
-      fun ({1, RecordTag}) ->
-              RecordTag;
-          ({#shared_state.authoritative_certificate_values, AuthoritativeCertificateValues}) ->
-              % Order matters - or rather, if the order is to change,
-              % this should not provoke a VM-wide garbage collection
-              % with a potentially disastrous explosion in memory
-              % consumption.
-              AuthoritativeCertificateValues;
-          ({#shared_state.trusted_public_keys, TrustedPublicKeys}) ->
-              % `term_to_binary/1' doesn't guarantee any particular encoding order;
-              % therefore equivalent shared states could end up under different keys
-              % (depending on VM implementation)
-              lists:sort( maps:to_list(TrustedPublicKeys) )
-      end,
-      KvPairs).
+    lists:map(fun canonical_shared_state_member_representation/1, KvPairs).
+
+-ifdef(PARTIAL_CHAIN_NEEDED).
+canonical_shared_state_member_representation(KvPair) ->
+    case KvPair of
+        {1, RecordTag} ->
+            RecordTag;
+        {#shared_state.authoritative_certificate_values, AuthoritativeCertificateValues} ->
+            canonical_shared_state_authoritative_certificate_values(AuthoritativeCertificateValues);
+        {#shared_state.trusted_public_keys, TrustedPublicKeys} ->
+            canonical_shared_state_trusted_public_keys(TrustedPublicKeys)
+    end.
+-else.
+canonical_shared_state_member_representation(KvPair) ->
+    case KvPair of
+        {1, RecordTag} ->
+            RecordTag;
+        {#shared_state.authoritative_certificate_values, AuthoritativeCertificateValues} ->
+            canonical_shared_state_authoritative_certificate_values(AuthoritativeCertificateValues)
+    end.
+-endif. % -ifdef(PARTIAL_CHAIN_NEEDED)
+
+canonical_shared_state_authoritative_certificate_values(AuthoritativeCertificateValues) ->
+    % Order matters - or rather, if the order is to change,
+    % this should not provoke a VM-wide garbage collection
+    % with a potentially disastrous explosion in memory
+    % consumption.
+    AuthoritativeCertificateValues.
+
+-ifdef(PARTIAL_CHAIN_NEEDED).
+canonical_shared_state_trusted_public_keys(TrustedPublicKeys) ->
+    % `term_to_binary/1' doesn't guarantee any particular encoding order;
+    % therefore equivalent shared states could end up under different keys
+    % (depending on VM implementation)
+    lists:sort( maps:to_list(TrustedPublicKeys) ).
+-endif.
 
 destroy_all_shared_states() ->
     AllPersistentTermObjects = persistent_term:get(),
@@ -337,6 +396,8 @@ latest_shared_state_key() ->
             throw({application_either_not_started_or_not_ready, tls_certificate_check})
     end.
 
+-ifdef(PARTIAL_CHAIN_NEEDED).
+
 find_trusted_authority_recur([EncodedCertificate | NextEncodedCertificates], TrustedPublicKeys) ->
     Certificate = public_key:pkix_decode_cert(EncodedCertificate, otp),
     #'OTPCertificate'{tbsCertificate = TbsCertificate} = Certificate,
@@ -350,3 +411,5 @@ find_trusted_authority_recur([EncodedCertificate | NextEncodedCertificates], Tru
     end;
 find_trusted_authority_recur([], _TrustedPublicKeys) ->
     unknown_ca.
+
+-endif.
