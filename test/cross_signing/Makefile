@@ -122,8 +122,7 @@ faketime:
 .PHONY: faketime
 
 .PRECIOUS: %_ca # prevens removal of what is considered an intermediate file (FIXME untested on macos)
-%_ca: %_ca_key.pem
-%_ca: faketime
+%_ca: %_ca_key.pem faketime
 	faketime -f '-5y' openssl req -x509 \
 		-new -nodes \
 		-key $*_ca_key.pem \
