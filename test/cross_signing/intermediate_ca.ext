@@ -1,8 +1,1 @@
-# From: https://stackoverflow.com/questions/52500165/problem-verifying-a-self-created-openssl-root-intermediate-and-end-user-certifi
-
-[ v3_intermediate_ca ]
-# Extensions for a typical intermediate CA (`man x509v3_config`).
-subjectKeyIdentifier = hash
-authorityKeyIdentifier = keyid:always,issuer
-basicConstraints = critical, CA:true, pathlen:1
-keyUsage = critical, digitalSignature, cRLSign, keyCertSign
+../common_scenarios/intermediate_ca.ext
