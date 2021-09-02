@@ -8,7 +8,6 @@ all: certificate_chains/localhost_chain_for_cross_signing.pem
 
 clean:
 	find . -mindepth 2 -maxdepth 2 -type f \( -name '*.pem' -or -name '*.csr' -or -name '*.srl' \) -delete
-	rm -f .faketime
 
 CA_stores/good_ca_store_for_expiry.pem: CAs/new_ca.pem
 CA_stores/good_ca_store_for_expiry.pem: CAs/expired_ca.pem
@@ -54,7 +53,6 @@ certificate_chains/localhost_chain_for_cross_signing.pem: intermediate_certifica
 
 leaf_certificates/localhost.pem: intermediate_certificates/regular_intermediate_cert.pem
 leaf_certificates/localhost.pem: leaf_certificates/localhost.csr
-leaf_certificates/localhost.pem: .faketime
 	faketime -f '-5y' openssl x509 \
 		-req \
 		-in leaf_certificates/localhost.csr \
@@ -67,7 +65,6 @@ leaf_certificates/localhost.pem: .faketime
 
 intermediate_certificates/regular_intermediate_cert.pem: CAs/new_ca.pem
 intermediate_certificates/regular_intermediate_cert.pem: intermediate_certificates/regular_intermediate_cert.csr
-intermediate_certificates/regular_intermediate_cert.pem: .faketime
 	faketime -f '-5y' openssl x509 \
 		-req \
 		-in intermediate_certificates/regular_intermediate_cert.csr \
@@ -82,7 +79,6 @@ intermediate_certificates/regular_intermediate_cert.pem: .faketime
 
 intermediate_certificates/cross_signed_bad_intermediate_cert.pem: CAs/expired_ca.pem
 intermediate_certificates/cross_signed_bad_intermediate_cert.pem: CAs/new_ca.csr
-intermediate_certificates/cross_signed_bad_intermediate_cert.pem: .faketime
 	faketime -f '-5y' openssl x509 \
 		-req \
 		-in CAs/new_ca.csr \
@@ -97,7 +93,6 @@ intermediate_certificates/cross_signed_bad_intermediate_cert.pem: .faketime
 
 intermediate_certificates/cross_signed_good_intermediate_cert.pem: CAs/third_ca.pem
 intermediate_certificates/cross_signed_good_intermediate_cert.pem: CAs/new_ca.csr
-intermediate_certificates/cross_signed_good_intermediate_cert.pem: .faketime
 	faketime -f '-5y' openssl x509 \
 		-req \
 		-in CAs/new_ca.csr \
@@ -110,7 +105,6 @@ intermediate_certificates/cross_signed_good_intermediate_cert.pem: .faketime
 		-days 20075 \
 		-sha256
 
-CAs/expired_ca.pem: .faketime
 CAs/expired_ca.pem: CAs/expired_ca_key.pem
 	faketime -f '-5y' openssl req -x509 \
 		-new -nodes \
@@ -120,12 +114,8 @@ CAs/expired_ca.pem: CAs/expired_ca_key.pem
 		-subj "/CN=Expired CA" \
 		-out CAs/expired_ca.pem
 
-.faketime:
-	./install_faketime.sh;
-	touch .faketime
-
 .PRECIOUS: %_ca.pem # prevents removal of what is considered an intermediate file (FIXME untested on macos)
-%_ca.pem: %_ca_key.pem .faketime
+%_ca.pem: %_ca_key.pem
 	faketime -f '-5y' openssl req -x509 \
 		-new -nodes \
 		-key $*_ca_key.pem \

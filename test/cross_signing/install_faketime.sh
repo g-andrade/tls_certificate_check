@@ -8,6 +8,7 @@ function is_installed {
 
 
 if is_installed faketime; then
+    echo "faketime already installed"
     exit
 fi
 
