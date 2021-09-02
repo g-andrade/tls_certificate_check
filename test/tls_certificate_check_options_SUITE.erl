@@ -21,6 +21,8 @@
 -module(tls_certificate_check_options_SUITE).
 -compile(export_all).
 
+-include_lib("stdlib/include/assert.hrl").
+
 %% ------------------------------------------------------------------
 %% Macros
 %% ------------------------------------------------------------------
@@ -32,23 +34,35 @@
 %% ------------------------------------------------------------------
 
 all() ->
-    [good_certificate_test,
+    [real_certificate_test,
+     good_certificate_test,
      expired_certificate_test,
      future_certificate_test,
      wrong_host_certificate_test,
      self_signed_certificate_test,
      unknown_ca_test].
 
-init_per_testcase(_TestConfig, Config) ->
+init_per_suite(Config) ->
     {ok, _} = application:ensure_all_started(tls_certificate_check),
     Config.
 
-end_per_testcase(_TestConfig, _Config) ->
+end_per_suite(_Config) ->
     ok = application:stop(tls_certificate_check).
 
 %% ------------------------------------------------------------------
 %% Test Cases
 %% ------------------------------------------------------------------
+
+real_certificate_test(_Config) ->
+    {ok, _} = application:ensure_all_started(inets),
+    try
+        URLs = shuffle_list(["https://example.com",
+                             "https://google.com",
+                             "https://microsoft.com"]),
+        real_certificate_test_recur(URLs)
+    after
+        application:stop(inets)
+    end.
 
 good_certificate_test(_Config) ->
     tls_certificate_check_test_utils:connect(
@@ -97,3 +111,32 @@ unknown_ca_test(_Config) ->
       fun ({error, {tls_alert, {unknown_ca, _}}}) ->
               ok
       end).
+
+%% ------------------------------------------------------------------
+%% Internal
+%% ------------------------------------------------------------------
+
+real_certificate_test_recur([Url | Next]) ->
+    ct:pal("Trying ~p", [Url]),
+    Headers = [{"connection", "close"}],
+    HttpOpts = [{ssl, tls_certificate_check:options(Url)}],
+    Opts = [],
+
+    case httpc:request(head, {Url, Headers}, HttpOpts, Opts) of
+        {ok, {{_, StatusCode, _}, _, _}}
+          when is_integer(StatusCode) ->
+            ok;
+        {error, Reason} ->
+            ?assertNotMatch({error, {failed_connect, [{to_address, {_, _}},
+                                                      {inet, [inet], {tls_alert, _}}]}},
+                            Reason),
+            ct:pal("Failed: ~p", [Reason]),
+            real_certificate_test_recur(Next)
+    end;
+real_certificate_test_recur([]) ->
+    error('All test URLs are down (or we have no internet access)').
+
+shuffle_list(List) ->
+    Weighed = [{rand:uniform(), V} || V <- List],
+    Sorted = lists:sort(Weighed),
+    [V || {_, V} <- Sorted].
