@@ -40,7 +40,8 @@ all() ->
      future_certificate_test,
      wrong_host_certificate_test,
      self_signed_certificate_test,
-     unknown_ca_test].
+     unknown_ca_test,
+     misordered_chain_test].
 
 init_per_suite(Config) ->
     {ok, _} = application:ensure_all_started(tls_certificate_check),
@@ -110,6 +111,14 @@ unknown_ca_test(_Config) ->
       leaf, "unknown_ca.pem",
       fun ({error, {tls_alert, {unknown_ca, _}}}) ->
               ok
+      end).
+
+misordered_chain_test(_Config) ->
+    tls_certificate_check_test_utils:connect(
+      ?PEMS_PATH, "foobar.pem",
+      chain, "misordered_chain.pem",
+      fun ({ok, Socket}) ->
+              ssl:close(Socket)
       end).
 
 %% ------------------------------------------------------------------

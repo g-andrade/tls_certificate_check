@@ -5,10 +5,20 @@ all: leaf_certificates/future_certificate.pem
 all: leaf_certificates/wrong.host.pem
 all: leaf_certificates/self_signed.pem
 all: leaf_certificates/unknown_ca.pem
+all: certificate_chains/misordered_chain.pem
 all: CA_stores/foobar.pem
 
 clean:
 	find . -mindepth 2 -maxdepth 2 -type f \( -name '*.pem' -or -name '*.csr' -or -name '*.srl' \) -delete
+
+certificate_chains/misordered_chain.pem: CAs/foobar_ca.pem
+certificate_chains/misordered_chain.pem: intermediate_certificates/intermediate_cert.pem
+certificate_chains/misordered_chain.pem: leaf_certificates/good_certificate_with_intermediate_ca.pem
+	cat \
+		leaf_certificates/good_certificate_with_intermediate_ca.pem \
+		CAs/foobar_ca.pem \
+		intermediate_certificates/intermediate_cert.pem \
+		>certificate_chains/misordered_chain.pem
 
 leaf_certificates/good_certificate.pem: CAs/foobar_ca.pem
 leaf_certificates/good_certificate.pem: leaf_certificates/localhost.csr
@@ -74,6 +84,32 @@ leaf_certificates/unknown_ca.pem: leaf_certificates/localhost.csr
 		-in leaf_certificates/localhost.csr \
 		-CA CAs/another_ca.pem \
 		-CAkey CAs/another_ca_key.pem \
+		-CAcreateserial \
+		-out $@ \
+		-days 20075 \
+		-sha256
+
+intermediate_certificates/intermediate_cert.pem: CAs/foobar_ca.pem
+intermediate_certificates/intermediate_cert.pem: intermediate_certificates/intermediate_cert.csr
+	faketime -f '-5y' openssl x509 \
+		-req \
+		-in intermediate_certificates/intermediate_cert.csr \
+		-extfile intermediate_ca.ext \
+		-extensions v3_intermediate_ca \
+		-CA CAs/foobar_ca.pem \
+		-CAkey CAs/foobar_ca_key.pem \
+		-CAcreateserial \
+		-out intermediate_certificates/intermediate_cert.pem \
+		-days 20075 \
+		-sha256
+
+leaf_certificates/good_certificate_with_intermediate_ca.pem: intermediate_certificates/intermediate_cert.pem
+leaf_certificates/good_certificate_with_intermediate_ca.pem: leaf_certificates/localhost.csr
+	faketime -f '-5y' openssl x509 \
+		-req \
+		-in leaf_certificates/localhost.csr \
+		-CA intermediate_certificates/intermediate_cert.pem \
+		-CAkey intermediate_certificates/intermediate_cert_key.pem \
 		-CAcreateserial \
 		-out $@ \
 		-days 20075 \
