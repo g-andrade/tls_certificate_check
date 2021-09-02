@@ -104,6 +104,8 @@ start_server_with_chain(ChainFilename) ->
     KeyPath = filename:join([?PEMS_PATH, "leaf_certificates", "localhost_key.pem"]),
     Options = [{ip, {127, 0, 0, 1}},
                {certfile, CertsPath},
+               % Ugh: http://erlang.org/pipermail/erlang-questions/2020-May/099521.html
+               {cacertfile, CertsPath},
                {keyfile, KeyPath},
                {reuseaddr, true}],
 
