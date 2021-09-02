@@ -34,8 +34,9 @@
 all() ->
     [good_chain_with_expired_root_test,
      bad_chain_with_expired_root_test,
-     cross_signing_with_one_recognized_ca_test,
-     cross_signing_with_one_other_recognized_ca_test].
+     cross_signing_with_one_recognized_ca_test
+     %cross_signing_with_one_other_recognized_ca_test
+     ].
 
 init_per_testcase(_TestConfig, Config) ->
     {ok, _} = application:ensure_all_started(tls_certificate_check),
