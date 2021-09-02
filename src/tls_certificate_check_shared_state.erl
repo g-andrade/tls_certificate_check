@@ -33,7 +33,6 @@
    [child_spec/0,
     start_link/0,
     authoritative_certificate_values/0,
-    needs_partial_chain_handler/0,
     find_trusted_authority/1,
     maybe_update_shared_state/1
    ]).
@@ -91,37 +90,18 @@
 
 -define(SHARED_STATE_KEY_PREFIX, "__$tls_certificate_check.shared_state.").
 
-
-
-% OTP 23.3.4.5
-% * http://erlang.org/pipermail/erlang-questions/2021-July/101251.html
-% * https://blog.voltone.net/post/30
-% * https://github.com/elixir-mint/mint/pull/328
-%
--define(FLOOR_OF_SSL_APP_VERSION_THAT_FIXED_PARTIAL_CHAIN_HANDLING_ON_OTP_23d3,
-        [10, 3, 1, 2]).
--define(CEIL_OF_SSL_APP_VERSION_THAT_FIXED_PARTIAL_CHAIN_HANDLING_ON_OTP_23d3,
-        [10, 4]).
-
-% OTP 24.0.4
-% * http://erlang.org/pipermail/erlang-questions/2021-July/101252.html
-%
--define(SSL_APP_VERSION_THAT_FIXED_PARTIAL_CHAIN_HANDLING_ON_OTP_24,
-        [10, 4, 2]).
-
 %% ------------------------------------------------------------------
 %% Record and Type Definitions
 %% ------------------------------------------------------------------
 
 -record(state, {
-          shared_state_initialized :: boolean(),
-          needs_partial_chain_handler :: boolean()
+          shared_state_initialized :: boolean()
          }).
 -type state() :: #state{}.
 
 -record(shared_state, {
           authoritative_certificate_values :: [public_key:der_encoded(), ...],
-          trusted_public_keys :: unnecessary | #{public_key_info() := []}
+          trusted_public_keys :: #{public_key_info() := []}
          }).
 
 -type public_key_info() :: #'OTPSubjectPublicKeyInfo'{}.
@@ -145,11 +125,6 @@ start_link() ->
 authoritative_certificate_values() ->
     SharedState = get_latest_shared_state(),
     SharedState#shared_state.authoritative_certificate_values.
-
--spec needs_partial_chain_handler() -> boolean().
-needs_partial_chain_handler() ->
-    SharedState = get_latest_shared_state(),
-    SharedState#shared_state.trusted_public_keys =/= unnecessary.
 
 -spec find_trusted_authority([public_key:der_encoded()])
         -> {trusted_ca, public_key:der_encoded()}
@@ -184,10 +159,8 @@ proc_lib_init() ->
         true ->
             _ = process_flag(trap_exit, true), % ensure `terminate/2' is called unless killed
             _ = new_info_table(),
-            NeedsPartialChainHandler = do_we_need_a_partial_chain_handler(),
             GenServerOptions = [{hibernate_after, ?HIBERNATE_AFTER}],
-            State = #state{shared_state_initialized = false,
-                           needs_partial_chain_handler = NeedsPartialChainHandler},
+            State = #state{shared_state_initialized = false},
             gen_server:enter_loop(?MODULE, GenServerOptions, State)
     catch
         error:badarg when is_atom(?SERVER) ->
@@ -251,28 +224,8 @@ new_info_table() ->
     Opts = [named_table, protected, {read_concurrency, true}],
     ets:new(?INFO_TABLE, Opts).
 
-do_we_need_a_partial_chain_handler() ->
-    % * https://github.com/elixir-mint/mint/pull/328
-    % * https://blog.voltone.net/post/30
-    % * https://erlang.org/pipermail/erlang-questions/2021-July/101252.html
-    SslAppVersion = ssl_app_version(),
-
-    not ((SslAppVersion >= ?FLOOR_OF_SSL_APP_VERSION_THAT_FIXED_PARTIAL_CHAIN_HANDLING_ON_OTP_23d3
-          andalso
-          SslAppVersion < ?CEIL_OF_SSL_APP_VERSION_THAT_FIXED_PARTIAL_CHAIN_HANDLING_ON_OTP_23d3
-         )
-         orelse
-         SslAppVersion >= ?SSL_APP_VERSION_THAT_FIXED_PARTIAL_CHAIN_HANDLING_ON_OTP_24).
-
-ssl_app_version() ->
-    {ok, _} = application:ensure_all_started(ssl),
-    {ssl, _, VersionStr} = lists:keyfind(ssl, 1, application:which_applications()),
-    VersionBin = list_to_binary(VersionStr),
-    Parts = binary:split(VersionBin, <<".">>, [global]),
-    lists:map(fun binary_to_integer/1, Parts).
-
 handle_shared_state_initialization(EncodedAuthorities, State) ->
-    case new_shared_state(EncodedAuthorities, State#state.needs_partial_chain_handler) of
+    case new_shared_state(EncodedAuthorities) of
         {ok, Key} ->
             ?assert( ets:insert_new(?INFO_TABLE, [{latest_shared_state_key, Key}]) ),
             proc_lib:init_ack({ok, self()}),
@@ -284,7 +237,7 @@ handle_shared_state_initialization(EncodedAuthorities, State) ->
     end.
 
 handle_shared_state_update(EncodedAuthorities, State) ->
-    case new_shared_state(EncodedAuthorities, State#state.needs_partial_chain_handler) of
+    case new_shared_state(EncodedAuthorities) of
         {ok, Key} ->
             ets:insert(?INFO_TABLE, [{latest_shared_state_key, Key}]),
             {reply, ok, State};
@@ -292,22 +245,20 @@ handle_shared_state_update(EncodedAuthorities, State) ->
             {reply, Error, State}
     end.
 
-new_shared_state(EncodedAuthorities, NeedsPartialChainHandler) ->
+new_shared_state(EncodedAuthorities) ->
     case tls_certificate_check_util:parse_encoded_authorities(EncodedAuthorities) of
         {ok, AuthoritativeCertificateValues} ->
             NewSharedState
                 = #shared_state{
                      authoritative_certificate_values = AuthoritativeCertificateValues,
-                     trusted_public_keys = trusted_public_keys(AuthoritativeCertificateValues,
-                                                               NeedsPartialChainHandler)
+                     trusted_public_keys = trusted_public_keys(AuthoritativeCertificateValues)
                     },
             save_shared_state(NewSharedState);
         {error, Reason} ->
             {error, {failed_to_decode_authorities, Reason}}
     end.
 
-trusted_public_keys(AuthoritativeCertificateValues, NeedsPartialChainHandler)
-  when NeedsPartialChainHandler ->
+trusted_public_keys(AuthoritativeCertificateValues) ->
     lists:foldl(
       fun (CertificateValue, Acc) ->
               DecodedCertificateValue = public_key:pkix_decode_cert(CertificateValue, otp),
@@ -315,10 +266,7 @@ trusted_public_keys(AuthoritativeCertificateValues, NeedsPartialChainHandler)
               #'OTPTBSCertificate'{subjectPublicKeyInfo = PKI} = TbsCertificate,
               maps:put(PKI, [], Acc)
       end,
-      #{}, AuthoritativeCertificateValues);
-trusted_public_keys(_AuthoritativeCertificateValues, NeedsPartialChainHandler)
-  when not NeedsPartialChainHandler ->
-    unnecessary.
+      #{}, AuthoritativeCertificateValues).
 
 save_shared_state(SharedState) ->
     Key = shared_state_key(SharedState),
@@ -347,8 +295,6 @@ canonical_shared_state_representation(SharedState) ->
               % with a potentially disastrous explosion in memory
               % consumption.
               AuthoritativeCertificateValues;
-          ({#shared_state.trusted_public_keys, unnecessary}) ->
-              unnecessary;
           ({#shared_state.trusted_public_keys, TrustedPublicKeys}) ->
               % `term_to_binary/1' doesn't guarantee any particular encoding order;
               % therefore equivalent shared states could end up under different keys

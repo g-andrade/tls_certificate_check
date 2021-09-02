@@ -11,10 +11,6 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 - partial chain validation to prepare for DST Root CA X3 expiration
 
-### Removed
-
-- unnecessary handling of partial chains on OTP 23.3.4.5+ or OTP 24.0.4+
-
 ## [1.8.0] - 2021-08-31
 
 ### Added
