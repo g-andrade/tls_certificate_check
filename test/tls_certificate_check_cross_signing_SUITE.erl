@@ -21,8 +21,6 @@
 -module(tls_certificate_check_cross_signing_SUITE).
 -compile(export_all).
 
--include_lib("stdlib/include/assert.hrl").
-
 %% ------------------------------------------------------------------
 %% Macros
 %% ------------------------------------------------------------------
@@ -39,11 +37,11 @@ all() ->
      cross_signing_with_one_recognized_ca_test,
      cross_signing_with_one_other_recognized_ca_test].
 
-init_per_suite(Config) ->
+init_per_testcase(_TestConfig, Config) ->
     {ok, _} = application:ensure_all_started(tls_certificate_check),
     Config.
 
-end_per_suite(_Config) ->
+end_per_testcase(_TestConfig, _Config) ->
     ok = application:stop(tls_certificate_check).
 
 %% ------------------------------------------------------------------
@@ -51,87 +49,46 @@ end_per_suite(_Config) ->
 %% ------------------------------------------------------------------
 
 good_chain_with_expired_root_test(_Config) ->
-    connect("good_ca_store_for_expiry.pem",
-            "localhost_chain_for_expiry.pem",
-            fun ({ok, Socket}) ->
-                    ssl:close(Socket)
-            end).
+    tls_certificate_check_test_utils:connect(
+      ?PEMS_PATH, "good_ca_store_for_expiry.pem",
+      chain, "localhost_chain_for_expiry.pem",
+      fun ({ok, Socket}) ->
+              ssl:close(Socket)
+      end).
 
+-ifdef(EXPIRED_CAs_ARE_CONSIDERED_VALID).
 bad_chain_with_expired_root_test(_Config) ->
-    connect("bad_ca_store_for_expiry.pem",
-            "localhost_chain_for_expiry.pem",
-            fun ({error, {tls_alert, {certificate_expired, _}}}) ->
-                    ok
-            end).
+    tls_certificate_check_test_utils:connect(
+      ?PEMS_PATH, "bad_ca_store_for_expiry.pem",
+      chain, "localhost_chain_for_expiry.pem",
+      fun ({ok, Socket}) ->
+              ssl:close(Socket)
+      end).
+
+-else.
+bad_chain_with_expired_root_test(_Config) ->
+    tls_certificate_check_test_utils:connect(
+      ?PEMS_PATH, "bad_ca_store_for_expiry.pem",
+      chain, "localhost_chain_for_expiry.pem",
+      fun ({error, {tls_alert, {certificate_expired, _}}}) ->
+              ok
+      end).
+
+-endif. % -ifdef(EXPIRED_CAs_ARE_CONSIDERED_VALID)
 
 cross_signing_with_one_recognized_ca_test(_Config) ->
-    connect("ca_store1_for_cross_signing.pem",
-            "localhost_chain_for_cross_signing.pem",
-            fun ({ok, Socket}) ->
-                    ssl:close(Socket)
-            end).
+    tls_certificate_check_test_utils:connect(
+      ?PEMS_PATH, "ca_store1_for_cross_signing.pem",
+      chain, "localhost_chain_for_cross_signing.pem",
+      fun ({ok, Socket}) ->
+              ssl:close(Socket)
+      end).
 
 cross_signing_with_one_other_recognized_ca_test(_Config) ->
-    connect("ca_store2_for_cross_signing.pem",
-            "localhost_chain_for_cross_signing.pem",
-            fun ({ok, Socket}) ->
-                    ssl:close(Socket)
-            end).
-
-%% ------------------------------------------------------------------
-%% Internal
-%% ------------------------------------------------------------------
-
-connect(AuthoritiesFilename, ChainFilename, Fun) ->
-    AuthoritiesPath = filename:join([?PEMS_PATH, "CA_stores", AuthoritiesFilename]),
-    {ok, EncodedAuthorities} = file:read_file(AuthoritiesPath),
-    ok = tls_certificate_check_shared_state:maybe_update_shared_state(EncodedAuthorities),
-
-    {ListenSocket, Port, AcceptorPid} = start_server_with_chain(ChainFilename),
-    try
-        Hostname = "localhost",
-        Options = tls_certificate_check:options(Hostname),
-        Timeout = timer:seconds(5),
-        _ = Fun( ssl:connect(Hostname, Port, Options, Timeout) ),
-        ok
-    after
-        stop_ssl_acceptor(AcceptorPid),
-        _ = ssl:close(ListenSocket)
-    end.
-
-start_server_with_chain(ChainFilename) ->
-    CertsPath = filename:join([?PEMS_PATH, "certificate_chains", ChainFilename]),
-    KeyPath = filename:join([?PEMS_PATH, "leaf_certificates", "localhost_key.pem"]),
-    Options = [{ip, {127, 0, 0, 1}},
-               {certfile, CertsPath},
-               % Ugh: http://erlang.org/pipermail/erlang-questions/2020-May/099521.html
-               {cacertfile, CertsPath},
-               {keyfile, KeyPath},
-               {reuseaddr, true}],
-
-    {ok, ListenSocket} = ssl:listen(_Port = 0, Options),
-    {ok, {_Address, Port}} = ssl:sockname(ListenSocket),
-    AcceptorPid = start_ssl_acceptor(ListenSocket),
-    {ListenSocket, Port, AcceptorPid}.
-
-start_ssl_acceptor(ListenSocket) ->
-    spawn_link(fun () -> run_ssl_acceptor(ListenSocket) end).
-
-run_ssl_acceptor(ListenSocket) ->
-    receive
-        stop -> exit(normal)
-    after
-        0 -> ok
-    end,
-
-    case ssl:transport_accept(ListenSocket, _Timeout = 100) of
-        {ok, Transportsocket} ->
-            _ = ssl:handshake(Transportsocket),
-            run_ssl_acceptor(ListenSocket);
-        {error, Reason}
-          when Reason =:= timeout; Reason =:= closed ->
-            run_ssl_acceptor(ListenSocket)
-    end.
-
-stop_ssl_acceptor(AcceptorPid) ->
-    AcceptorPid ! stop.
+    % FIXME non-deterministic failures (unknown CA) on OTP 22.3.4.10
+    tls_certificate_check_test_utils:connect(
+      ?PEMS_PATH, "ca_store2_for_cross_signing.pem",
+      chain, "localhost_chain_for_cross_signing.pem",
+      fun ({ok, Socket}) ->
+              ssl:close(Socket)
+      end).
