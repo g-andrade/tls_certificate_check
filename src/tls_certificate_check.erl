@@ -128,4 +128,22 @@ trusted_authorities_is_exported_test() ->
     {ok, _} = application:ensure_all_started(tls_certificate_check),
     ?assertMatch([_|_], ?MODULE:trusted_authorities()).
 
+http_target_test() ->
+    {ok, _} = application:ensure_all_started(tls_certificate_check),
+    ?assertEqual([], ?MODULE:options("http://example.com/")).
+
+https_target_test() ->
+    {ok, _} = application:ensure_all_started(tls_certificate_check),
+    ?assertMatch([_|_], ?MODULE:options("https://example.com/")).
+
+generic_tls_target_test() ->
+    {ok, _} = application:ensure_all_started(tls_certificate_check),
+    ?assertMatch([_|_], ?MODULE:options("example.com")).
+
+https_and_generic_tls_targets_equivalence_test() ->
+    ?assertEqual(
+       ?MODULE:options("example.com"),
+       ?MODULE:options("https://example.com/")
+      ).
+
 -endif. % -ifdef(TEST).

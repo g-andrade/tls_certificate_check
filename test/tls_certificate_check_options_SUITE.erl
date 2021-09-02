@@ -21,135 +21,79 @@
 -module(tls_certificate_check_options_SUITE).
 -compile(export_all).
 
--include_lib("stdlib/include/assert.hrl").
+%% ------------------------------------------------------------------
+%% Macros
+%% ------------------------------------------------------------------
+
+-define(PEMS_PATH, "../../../../test/common_scenarios").
 
 %% ------------------------------------------------------------------
 %% Setup
 %% ------------------------------------------------------------------
 
 all() ->
-    [{group, GroupName} || {GroupName, _, _} <- groups()].
+    [good_certificate_test,
+     expired_certificate_test,
+     future_certificate_test,
+     wrong_host_certificate_test,
+     self_signed_certificate_test,
+     unknown_ca_test].
 
-groups() ->
-    [group_definition(GroupName)
-     || GroupName
-        <- [hostname_target,
-            https_url_target,
-            http_url_target]].
-
-group_definition(GroupName) ->
-    {GroupName, [parallel], group_test_cases(GroupName)}.
-
-group_test_cases(GroupName) ->
-    Exports = ?MODULE:module_info(exports),
-    Candidates = [Name || {Name,1} <- Exports, lists:suffix("_test", atom_to_list(Name))],
-    lists:filter(
-      fun (Candidate) ->
-              case ?MODULE:Candidate(groups) of
-                  all ->
-                      true;
-                  {all_but, ExcludedGroupNames} ->
-                      not lists:member(GroupName, ExcludedGroupNames);
-                  TargetGroupNames ->
-                      lists:member(GroupName, TargetGroupNames)
-              end
-      end,
-      Candidates).
-
-init_per_suite(Config) ->
-    {ok, _} = application:ensure_all_started(inets),
-    {ok, _} = application:ensure_all_started(ssl),
+init_per_testcase(_TestConfig, Config) ->
     {ok, _} = application:ensure_all_started(tls_certificate_check),
     Config.
 
-end_per_suite(_Config) ->
+end_per_testcase(_TestConfig, _Config) ->
     ok = application:stop(tls_certificate_check).
-
-init_per_group(GroupName, Config) ->
-    case GroupName of
-        hostname_target ->
-            Config;
-        https_url_target ->
-            [{check_target, https_url} | Config];
-        http_url_target ->
-            [{check_target, http_url} | Config]
-    end.
-
-end_per_group(_GroupName, _Config) ->
-    ok.
-
-%% ------------------------------------------------------------------
-%% Boilerplate Macros
-%% ------------------------------------------------------------------
-
--define(do_https_test(Config, Host, ExpectedResultMatch),
-        (begin
-             URL = "https://" ++ Host ++ "/",
-             Headers = [{"connection", "close"}],
-             HTTPOpts = httpc_http_opts(Config, Host),
-             Opts = [],
-             ?assertMatch(
-                ExpectedResultMatch,
-                httpc:request(head, {URL, Headers}, HTTPOpts, Opts))
-         end)).
-
--define(expect_success(Config, Host),
-        ?do_https_test(
-           (Config), (Host),
-           {ok, {{_, 200, _}, _, _}})).
-
--define(expect_tls_alert(Config, Host, ExpectedTlsAlert),
-        ?do_https_test(
-           (Config), (Host),
-           {error, {failed_connect,
-                    [{to_address, {Host,_}},
-                     {inet, [inet], {tls_alert,ExpectedTlsAlert}}
-                    ]}})).
 
 %% ------------------------------------------------------------------
 %% Test Cases
 %% ------------------------------------------------------------------
 
-good_certificate_test(groups) ->
-    all;
-good_certificate_test(Config) ->
-    ?expect_success(Config, "badssl.com").
+good_certificate_test(_Config) ->
+    tls_certificate_check_test_utils:connect(
+      ?PEMS_PATH, "foobar.pem",
+      leaf, "good_certificate.pem",
+      fun ({ok, Socket}) ->
+              ssl:close(Socket)
+      end).
 
-expired_certificate_test(groups) ->
-    {all_but, [http_url_target]};
-expired_certificate_test(Config) ->
-    ?expect_tls_alert(Config, "expired.badssl.com", {certificate_expired, _}).
+expired_certificate_test(_Config) ->
+    tls_certificate_check_test_utils:connect(
+      ?PEMS_PATH, "foobar.pem",
+      leaf, "expired_certificate.pem",
+      fun ({error, {tls_alert, {certificate_expired, _}}}) ->
+              ok
+      end).
 
-wrong_host_certificate_test(groups) ->
-    {all_but, [http_url_target]};
-wrong_host_certificate_test(Config) ->
-    ?expect_tls_alert(Config, "wrong.host.badssl.com", {handshake_failure, _}).
+future_certificate_test(_Config) ->
+    tls_certificate_check_test_utils:connect(
+      ?PEMS_PATH, "foobar.pem",
+      leaf, "future_certificate.pem",
+      fun ({error, {tls_alert, {certificate_expired, _}}}) ->
+              ok
+      end).
 
-self_signed_certificate_test(groups) ->
-    {all_but, [http_url_target]};
-self_signed_certificate_test(Config) ->
-    ?expect_tls_alert(Config, "self-signed.badssl.com", {bad_certificate, _}).
+wrong_host_certificate_test(_Config) ->
+    tls_certificate_check_test_utils:connect(
+      ?PEMS_PATH, "foobar.pem",
+      leaf, "wrong.host.pem", "wrong.host_key.pem",
+      fun ({error, {tls_alert, {handshake_failure, _}}}) ->
+              ok
+      end).
 
-unknown_authority_test(groups) ->
-    {all_but, [http_url_target]};
-unknown_authority_test(Config) ->
-    ?expect_tls_alert(Config, "untrusted-root.badssl.com", {unknown_ca, _}).
+self_signed_certificate_test(_Config) ->
+    tls_certificate_check_test_utils:connect(
+      ?PEMS_PATH, "foobar.pem",
+      leaf, "self_signed.pem", "self_signed_key.pem",
+      fun ({error, {tls_alert, {bad_certificate, _}}}) ->
+              ok
+      end).
 
-%% ------------------------------------------------------------------
-%% Internal
-%% ------------------------------------------------------------------
-
-httpc_http_opts(Config, Host) ->
-    CheckTarget = check_target(Config, Host),
-    CheckOpts = tls_certificate_check:options(CheckTarget),
-    [{ssl, CheckOpts}].
-
-check_target(Config, Host) ->
-    case proplists:get_value(check_target, Config) of
-        https_url ->
-            "https://" ++ Host;
-        http_url ->
-            "http://" ++ Host;
-        _ ->
-            Host
-    end.
+unknown_ca_test(_Config) ->
+    tls_certificate_check_test_utils:connect(
+      ?PEMS_PATH, "foobar.pem",
+      leaf, "unknown_ca.pem",
+      fun ({error, {tls_alert, {unknown_ca, _}}}) ->
+              ok
+      end).

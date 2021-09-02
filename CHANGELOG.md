@@ -7,9 +7,17 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## [Unreleased]
 
+### Added
+
+- test coverage of certificates yet-to-be valid
+
 ### Changed
 
 - partial chain validation to prepare for DST Root CA X3 expiration
+
+### Removed
+
+- dependency of important test cases on badssl.com
 
 ## [1.8.0] - 2021-08-31
 
