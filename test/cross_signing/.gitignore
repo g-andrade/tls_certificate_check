@@ -1,3 +1,2 @@
-*.csr
-*.pem
-*.srl
+# `make` sentinel file marking faketime as installed
+.faketime

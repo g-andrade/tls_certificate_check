@@ -83,7 +83,7 @@ cross_signing_with_one_other_recognized_ca_test(_Config) ->
 %% ------------------------------------------------------------------
 
 connect(AuthoritiesFilename, ChainFilename, Fun) ->
-    AuthoritiesPath = filename:join(?PEMS_PATH, AuthoritiesFilename),
+    AuthoritiesPath = filename:join([?PEMS_PATH, "CA_stores", AuthoritiesFilename]),
     {ok, EncodedAuthorities} = file:read_file(AuthoritiesPath),
     ok = tls_certificate_check_shared_state:maybe_update_shared_state(EncodedAuthorities),
 
@@ -100,8 +100,8 @@ connect(AuthoritiesFilename, ChainFilename, Fun) ->
     end.
 
 start_server_with_chain(ChainFilename) ->
-    CertsPath = filename:join(?PEMS_PATH, ChainFilename),
-    KeyPath = filename:join(?PEMS_PATH, "localhost_key.pem"),
+    CertsPath = filename:join([?PEMS_PATH, "certificate_chains", ChainFilename]),
+    KeyPath = filename:join([?PEMS_PATH, "leaf_certificates", "localhost_key.pem"]),
     Options = [{ip, {127, 0, 0, 1}},
                {certfile, CertsPath},
                {keyfile, KeyPath},
