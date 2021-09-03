@@ -24,132 +24,128 @@
 -include_lib("stdlib/include/assert.hrl").
 
 %% ------------------------------------------------------------------
+%% Macros
+%% ------------------------------------------------------------------
+
+-define(PEMS_PATH, "../../../../test/common_scenarios").
+
+%% ------------------------------------------------------------------
 %% Setup
 %% ------------------------------------------------------------------
 
 all() ->
-    [{group, GroupName} || {GroupName, _, _} <- groups()].
-
-groups() ->
-    [group_definition(GroupName)
-     || GroupName
-        <- [hostname_target,
-            https_url_target,
-            http_url_target]].
-
-group_definition(GroupName) ->
-    {GroupName, [parallel], group_test_cases(GroupName)}.
-
-group_test_cases(GroupName) ->
-    Exports = ?MODULE:module_info(exports),
-    Candidates = [Name || {Name,1} <- Exports, lists:suffix("_test", atom_to_list(Name))],
-    lists:filter(
-      fun (Candidate) ->
-              case ?MODULE:Candidate(groups) of
-                  all ->
-                      true;
-                  {all_but, ExcludedGroupNames} ->
-                      not lists:member(GroupName, ExcludedGroupNames);
-                  TargetGroupNames ->
-                      lists:member(GroupName, TargetGroupNames)
-              end
-      end,
-      Candidates).
+    [real_certificate_test,
+     good_certificate_test,
+     expired_certificate_test,
+     future_certificate_test,
+     wrong_host_certificate_test,
+     self_signed_certificate_test,
+     unknown_ca_test,
+     misordered_chain_test].
 
 init_per_suite(Config) ->
-    {ok, _} = application:ensure_all_started(inets),
-    {ok, _} = application:ensure_all_started(ssl),
     {ok, _} = application:ensure_all_started(tls_certificate_check),
     Config.
 
 end_per_suite(_Config) ->
     ok = application:stop(tls_certificate_check).
 
-init_per_group(GroupName, Config) ->
-    case GroupName of
-        hostname_target ->
-            Config;
-        https_url_target ->
-            [{check_target, https_url} | Config];
-        http_url_target ->
-            [{check_target, http_url} | Config]
-    end.
-
-end_per_group(_GroupName, _Config) ->
-    ok.
-
-%% ------------------------------------------------------------------
-%% Boilerplate Macros
-%% ------------------------------------------------------------------
-
--define(do_https_test(Config, Host, ExpectedResultMatch),
-        (begin
-             URL = "https://" ++ Host ++ "/",
-             Headers = [{"connection", "close"}],
-             HTTPOpts = httpc_http_opts(Config, Host),
-             Opts = [],
-             ?assertMatch(
-                ExpectedResultMatch,
-                httpc:request(head, {URL, Headers}, HTTPOpts, Opts))
-         end)).
-
--define(expect_success(Config, Host),
-        ?do_https_test(
-           (Config), (Host),
-           {ok, {{_, 200, _}, _, _}})).
-
--define(expect_tls_alert(Config, Host, ExpectedTlsAlert),
-        ?do_https_test(
-           (Config), (Host),
-           {error, {failed_connect,
-                    [{to_address, {Host,_}},
-                     {inet, [inet], {tls_alert,ExpectedTlsAlert}}
-                    ]}})).
-
 %% ------------------------------------------------------------------
 %% Test Cases
 %% ------------------------------------------------------------------
 
-good_certificate_test(groups) ->
-    all;
-good_certificate_test(Config) ->
-    ?expect_success(Config, "badssl.com").
+real_certificate_test(_Config) ->
+    {ok, _} = application:ensure_all_started(inets),
+    try
+        URLs = shuffle_list(["https://example.com",
+                             "https://google.com",
+                             "https://microsoft.com"]),
+        real_certificate_test_recur(URLs)
+    after
+        application:stop(inets)
+    end.
 
-expired_certificate_test(groups) ->
-    {all_but, [http_url_target]};
-expired_certificate_test(Config) ->
-    ?expect_tls_alert(Config, "expired.badssl.com", {certificate_expired, _}).
+good_certificate_test(_Config) ->
+    tls_certificate_check_test_utils:connect(
+      ?PEMS_PATH, "foobar.pem",
+      leaf, "good_certificate.pem",
+      fun ({ok, Socket}) ->
+              ssl:close(Socket)
+      end).
 
-wrong_host_certificate_test(groups) ->
-    {all_but, [http_url_target]};
-wrong_host_certificate_test(Config) ->
-    ?expect_tls_alert(Config, "wrong.host.badssl.com", {handshake_failure, _}).
+expired_certificate_test(_Config) ->
+    tls_certificate_check_test_utils:connect(
+      ?PEMS_PATH, "foobar.pem",
+      leaf, "expired_certificate.pem",
+      fun ({error, {tls_alert, {certificate_expired, _}}}) ->
+              ok
+      end).
 
-self_signed_certificate_test(groups) ->
-    {all_but, [http_url_target]};
-self_signed_certificate_test(Config) ->
-    ?expect_tls_alert(Config, "self-signed.badssl.com", {bad_certificate, _}).
+future_certificate_test(_Config) ->
+    tls_certificate_check_test_utils:connect(
+      ?PEMS_PATH, "foobar.pem",
+      leaf, "future_certificate.pem",
+      fun ({error, {tls_alert, {certificate_expired, _}}}) ->
+              ok
+      end).
 
-unknown_authority_test(groups) ->
-    {all_but, [http_url_target]};
-unknown_authority_test(Config) ->
-    ?expect_tls_alert(Config, "untrusted-root.badssl.com", {unknown_ca, _}).
+wrong_host_certificate_test(_Config) ->
+    tls_certificate_check_test_utils:connect(
+      ?PEMS_PATH, "foobar.pem",
+      leaf, "wrong.host.pem", "wrong.host_key.pem",
+      fun ({error, {tls_alert, {handshake_failure, _}}}) ->
+              ok
+      end).
+
+self_signed_certificate_test(_Config) ->
+    tls_certificate_check_test_utils:connect(
+      ?PEMS_PATH, "foobar.pem",
+      leaf, "self_signed.pem", "self_signed_key.pem",
+      fun ({error, {tls_alert, {bad_certificate, _}}}) ->
+              ok
+      end).
+
+unknown_ca_test(_Config) ->
+    tls_certificate_check_test_utils:connect(
+      ?PEMS_PATH, "foobar.pem",
+      leaf, "unknown_ca.pem",
+      fun ({error, {tls_alert, {unknown_ca, _}}}) ->
+              ok
+      end).
+
+misordered_chain_test(_Config) ->
+    tls_certificate_check_test_utils:connect(
+      ?PEMS_PATH, "foobar.pem",
+      chain, "misordered_chain.pem",
+      fun ({ok, Socket}) ->
+              ssl:close(Socket)
+      end).
 
 %% ------------------------------------------------------------------
 %% Internal
 %% ------------------------------------------------------------------
 
-httpc_http_opts(Config, Host) ->
-    CheckTarget = check_target(Config, Host),
-    CheckOpts = tls_certificate_check:options(CheckTarget),
-    [{ssl, CheckOpts}].
+real_certificate_test_recur([Url | Next]) ->
+    ct:pal("Trying ~p", [Url]),
+    Headers = [{"connection", "close"}],
+    HttpOpts = [{ssl, tls_certificate_check:options(Url)}],
+    Opts = [],
 
-check_target(Config, Host) ->
-    case proplists:get_value(check_target, Config) of
-        https_url ->
-            "https://" ++ Host;
-        http_url ->
-            "http://" ++ Host;
-        _ ->
-            Host
-    end.
+    case httpc:request(head, {Url, Headers}, HttpOpts, Opts) of
+        {ok, {{_, StatusCode, _}, _, _}}
+          when is_integer(StatusCode) ->
+            ok;
+        {error, Reason} ->
+            ?assertNotMatch({error, {failed_connect, [{to_address, {_, _}},
+                                                      {inet, [inet], {tls_alert, _}}]}},
+                            Reason),
+            ct:pal("Failed: ~p", [Reason]),
+            real_certificate_test_recur(Next)
+    end;
+real_certificate_test_recur([]) ->
+    error('All test URLs are down (or we have no internet access)').
+
+shuffle_list(List) ->
+    Weighed = [{rand:uniform(), V} || V <- List],
+    Sorted = lists:sort(Weighed),
+    [V || {_, V} <- Sorted].

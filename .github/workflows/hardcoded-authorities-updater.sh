@@ -28,12 +28,12 @@ if git branch -a | grep "${BRANCH}" >/dev/null; then
     exit
 fi
 
-ORIGIN=origin
+REMOTE=origin
 PR_TITLE="Update bundled CAs to latest as of $DATE"
 git checkout -b "$BRANCH"
 git add .
 git commit -a -m "${PR_TITLE}"
-git push "$ORIGIN" "$BRANCH"
+git push "$REMOTE" "$BRANCH"
 
 PR_LABEL="hardcoded authorities update"
 if ! gh pr list --state open --label "$PR_LABEL" | grep "${PR_TITLE}" >/dev/null; then

@@ -132,8 +132,9 @@ authoritative_certificate_values() ->
            | no_return().
 find_trusted_authority(EncodedCertificates) ->
     SharedState = get_latest_shared_state(),
-    TrustedPublicKeys = SharedState#shared_state.trusted_public_keys,
-    find_trusted_authority_recur(EncodedCertificates, TrustedPublicKeys).
+    TrustedPublicKeys = #{} = SharedState#shared_state.trusted_public_keys,
+    Now = universal_time_in_certificate_format(),
+    find_trusted_authority_recur(EncodedCertificates, Now, TrustedPublicKeys).
 
 -spec maybe_update_shared_state(binary()) -> ok | {error, term()}.
 maybe_update_shared_state(EncodedAuthorities) ->
@@ -337,16 +338,50 @@ latest_shared_state_key() ->
             throw({application_either_not_started_or_not_ready, tls_certificate_check})
     end.
 
-find_trusted_authority_recur([EncodedCertificate | NextEncodedCertificates], TrustedPublicKeys) ->
+universal_time_in_certificate_format() ->
+    % http://erlang.org/doc/apps/public_key/public_key_records.html
+    % * {utcTime, "YYMMDDHHMMSSZ"
+    % * {generalTime, "YYYYMMDDHHMMSSZ"}
+
+    {{Year, Month, Day}, {Hour, Minute, Second}} = calendar:universal_time(),
+    IoData = io_lib:format("~4..0B~2..0B~2..0B" "~2..0B~2..0B~2..0BZ",
+                           [Year, Month, Day, Hour, Minute, Second]),
+    lists:flatten(IoData).
+
+find_trusted_authority_recur([EncodedCertificate | NextEncodedCertificates], Now, TrustedPublicKeys) ->
     Certificate = public_key:pkix_decode_cert(EncodedCertificate, otp),
     #'OTPCertificate'{tbsCertificate = TbsCertificate} = Certificate,
-    #'OTPTBSCertificate'{subjectPublicKeyInfo = PublicKeyInfo} = TbsCertificate,
+    #'OTPTBSCertificate'{subjectPublicKeyInfo = PublicKeyInfo,
+                         validity = Validity} = TbsCertificate,
 
-    case maps:is_key(PublicKeyInfo, TrustedPublicKeys) of
+    case is_certificate_valid(Validity, Now)
+         andalso maps:is_key(PublicKeyInfo, TrustedPublicKeys)
+    of
         true ->
             {trusted_ca, EncodedCertificate};
         false ->
-            find_trusted_authority_recur(NextEncodedCertificates, TrustedPublicKeys)
+            find_trusted_authority_recur(NextEncodedCertificates, Now, TrustedPublicKeys)
     end;
-find_trusted_authority_recur([], _TrustedPublicKeys) ->
+find_trusted_authority_recur([], _Now, _TrustedPublicKeys) ->
     unknown_ca.
+
+is_certificate_valid(Validity, Now) ->
+    #'Validity'{notBefore = NotBefore, notAfter = NotAfter} = Validity,
+    compare_certificate_timestamps(NotAfter, Now) =/= lesser
+    andalso compare_certificate_timestamps(NotBefore, Now) =/= greater.
+
+compare_certificate_timestamps({utcTime, String}, Now) ->
+    compare_certificate_timestamps_("20" ++ String, Now);
+compare_certificate_timestamps({generalTime, String}, Now) ->
+    compare_certificate_timestamps_(String, Now).
+
+compare_certificate_timestamps_([X|A], [Y|B]) ->
+    if X < Y ->
+           lesser;
+       X > Y ->
+           greater;
+       true ->
+           compare_certificate_timestamps_(A, B)
+    end;
+compare_certificate_timestamps_([], []) ->
+    equal.

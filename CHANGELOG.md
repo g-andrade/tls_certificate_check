@@ -5,6 +5,23 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
+## [1.9.0] - 2021-09-03
+
+### Added
+
+- test coverage of certificates yet-to-be valid
+- test coverage of misordered certificate chains
+
+### Changed
+
+- **partial chain validation to prepare for
+[DST Root CA X3 expiration](https://blog.voltone.net/post/30)**
+- documentation from edoc to ExDoc
+
+### Removed
+
+- dependency on badssl.com for important test cases
+
 ## [1.8.0] - 2021-08-31
 
 ### Added

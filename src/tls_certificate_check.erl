@@ -18,6 +18,7 @@
 %% FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 %% DEALINGS IN THE SOFTWARE.
 
+%% @doc Main API
 -module(tls_certificate_check).
 
 -ifdef(TEST).
@@ -83,9 +84,8 @@ options(Target) ->
             [{verify, verify_peer},
              {depth, ?DEFAULT_MAX_CERTIFICATE_CHAIN_DEPTH},
              {cacerts, CAs},
-             {partial_chain,
-                fun tls_certificate_check_shared_state:find_trusted_authority/1},
-             {verify_fun, CertificateVerificationFun}
+             {verify_fun, CertificateVerificationFun},
+             {partial_chain, fun tls_certificate_check_shared_state:find_trusted_authority/1}
              | HostnameCheckOptions]
     catch
         http_target ->
@@ -128,5 +128,23 @@ hostname_check_opts() ->
 trusted_authorities_is_exported_test() ->
     {ok, _} = application:ensure_all_started(tls_certificate_check),
     ?assertMatch([_|_], ?MODULE:trusted_authorities()).
+
+http_target_test() ->
+    {ok, _} = application:ensure_all_started(tls_certificate_check),
+    ?assertEqual([], ?MODULE:options("http://example.com/")).
+
+https_target_test() ->
+    {ok, _} = application:ensure_all_started(tls_certificate_check),
+    ?assertMatch([_|_], ?MODULE:options("https://example.com/")).
+
+generic_tls_target_test() ->
+    {ok, _} = application:ensure_all_started(tls_certificate_check),
+    ?assertMatch([_|_], ?MODULE:options("example.com")).
+
+https_and_generic_tls_targets_equivalence_test() ->
+    ?assertEqual(
+       ?MODULE:options("example.com"),
+       ?MODULE:options("https://example.com/")
+      ).
 
 -endif. % -ifdef(TEST).
