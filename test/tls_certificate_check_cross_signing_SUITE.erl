@@ -34,8 +34,8 @@
 all() ->
     [good_chain_with_expired_root_test,
      bad_chain_with_expired_root_test,
-     cross_signing_with_one_recognized_ca_test
-     %cross_signing_with_one_other_recognized_ca_test
+     cross_signing_with_one_recognized_ca_test,
+     cross_signing_with_one_other_recognized_ca_test
      ].
 
 init_per_testcase(_TestConfig, Config) ->
@@ -86,10 +86,11 @@ cross_signing_with_one_recognized_ca_test(_Config) ->
       end).
 
 cross_signing_with_one_other_recognized_ca_test(_Config) ->
-    % FIXME non-deterministic failures (unknown CA) on OTP 22.3.4.10
-    tls_certificate_check_test_utils:connect(
-      ?PEMS_PATH, "ca_store2_for_cross_signing.pem",
-      chain, "localhost_chain_for_cross_signing.pem",
-      fun ({ok, Socket}) ->
-              ssl:close(Socket)
-      end).
+    {skip, ("FIXME Non-deterministic failures (purportedly due to an \"unknown CA\")"
+            " on OTP 22 and <23.3")}.
+    %tls_certificate_check_test_utils:connect(
+    %  ?PEMS_PATH, "ca_store2_for_cross_signing.pem",
+    %  chain, "localhost_chain_for_cross_signing.pem",
+    %  fun ({ok, Socket}) ->
+    %          ssl:close(Socket)
+    %  end).
