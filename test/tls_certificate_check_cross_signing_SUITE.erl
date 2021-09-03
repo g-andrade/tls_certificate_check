@@ -27,16 +27,23 @@
 
 -define(PEMS_PATH, "../../../../test/cross_signing").
 
+-define(REPEAT_N, 20).
+
 %% ------------------------------------------------------------------
 %% Setup
 %% ------------------------------------------------------------------
 
 all() ->
+    [{group, GroupName} || {GroupName, _Options, _TestCases} <- groups()].
+
+groups() ->
+    [{individual_tests, [{repeat, ?REPEAT_N}, shuffle], test_names()}].
+
+test_names() ->
     [good_chain_with_expired_root_test,
      bad_chain_with_expired_root_test,
      cross_signing_with_one_recognized_ca_test,
-     cross_signing_with_one_other_recognized_ca_test
-     ].
+     cross_signing_with_one_other_recognized_ca_test].
 
 init_per_testcase(_TestConfig, Config) ->
     {ok, _} = application:ensure_all_started(tls_certificate_check),
@@ -58,6 +65,11 @@ good_chain_with_expired_root_test(_Config) ->
       end).
 
 -ifdef(EXPIRED_CAs_ARE_CONSIDERED_VALID).
+
+-ifdef(FLAKY_CROSS_SIGNING_VALIDATION).
+bad_chain_with_expired_root_test(_Config) ->
+    {skip, "This test fails non-deterministically on the present OTP version"}.
+-else.
 bad_chain_with_expired_root_test(_Config) ->
     tls_certificate_check_test_utils:connect(
       ?PEMS_PATH, "bad_ca_store_for_expiry.pem",
@@ -65,8 +77,9 @@ bad_chain_with_expired_root_test(_Config) ->
       fun ({ok, Socket}) ->
               ssl:close(Socket)
       end).
+-endif. % ifdef(FLAKY_CROSS_SIGNING_VALIDATION
 
--else.
+-else. % ifdef(EXPIRED_CAs_ARE_CONSIDERED_VALID)
 bad_chain_with_expired_root_test(_Config) ->
     tls_certificate_check_test_utils:connect(
       ?PEMS_PATH, "bad_ca_store_for_expiry.pem",
@@ -85,12 +98,17 @@ cross_signing_with_one_recognized_ca_test(_Config) ->
               ssl:close(Socket)
       end).
 
+-ifdef(FLAKY_CROSS_SIGNING_VALIDATION).
 cross_signing_with_one_other_recognized_ca_test(_Config) ->
-    {skip, ("FIXME Non-deterministic failures (purportedly due to an \"unknown CA\")"
-            " on OTP 22 and <23.3")}.
-    %tls_certificate_check_test_utils:connect(
-    %  ?PEMS_PATH, "ca_store2_for_cross_signing.pem",
-    %  chain, "localhost_chain_for_cross_signing.pem",
-    %  fun ({ok, Socket}) ->
-    %          ssl:close(Socket)
-    %  end).
+    {skip, "This test fails non-deterministically on the present OTP version"}.
+
+-else.
+cross_signing_with_one_other_recognized_ca_test(_Config) ->
+    tls_certificate_check_test_utils:connect(
+      ?PEMS_PATH, "ca_store2_for_cross_signing.pem",
+      chain, "localhost_chain_for_cross_signing.pem",
+      fun ({ok, Socket}) ->
+              ssl:close(Socket)
+      end).
+
+-endif. % -ifdef(FLAKY_CROSS_SIGNING_VALIDATION)
