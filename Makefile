@@ -65,6 +65,7 @@ doc: $(REBAR3)
 	./support/scripts/generate_docs.sh
 
 publish: $(REBAR3)
+publish: doc
 	@$(REBAR3) hex publish
 
 hardcoded-authorities-update: hardcoded-authorities-updater
