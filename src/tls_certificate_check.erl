@@ -18,6 +18,7 @@
 %% FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 %% DEALINGS IN THE SOFTWARE.
 
+%% @doc Main API
 -module(tls_certificate_check).
 
 -ifdef(TEST).

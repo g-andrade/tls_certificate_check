@@ -15,6 +15,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ### Changed
 
 - partial chain validation to prepare for DST Root CA X3 expiration
+- documentation from edoc to ExDoc
 
 ### Removed
 
