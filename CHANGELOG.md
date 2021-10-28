@@ -5,6 +5,19 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+### Added
+
+- [certificate authority] HARICA TLS ECC Root CA 2021
+- [certificate authority] HARICA TLS RSA Root CA 2021
+- [certificate authority] TunTrust Root CA
+
+### Changed
+
+- module with bundled CAs to latest as of 2021/10/26, 03:12 UTC
+(source: https://curl.se/ca/cacert.pem)
+
 ## [1.10.0] - 2021-10-01
 
 ### Changed
