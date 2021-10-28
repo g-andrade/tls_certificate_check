@@ -65,7 +65,7 @@ main(Args) ->
 
 -spec main([string(), ...]) -> no_return().
 main(_) ->
-    io:format(standard_error, "[error] This script requires Erlang/OTP 23+", []),
+    io:format(standard_error, "[error] This script requires Erlang/OTP 23.1+", []),
     erlang:halt(?FAILURE_STATUS_CODE).
 
 -endif. % ifdef(HARDCODED_AUTHORITIES_UPDATER_SUPPORTED).
