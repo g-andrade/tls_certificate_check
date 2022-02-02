@@ -9,14 +9,9 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ### Added
 
-- [certificate authority] globalsign
-- [certificate authority] gts root r3
-- [certificate authority] gts root r4
 - [certificate authority] vtrus ecc root ca
 - [certificate authority] isrg root x2
 - [certificate authority] vtrus root ca
-- [certificate authority] gts root r1
-- [certificate authority] gts root r2
 - [certificate authority] HiPKI Root CA - G1
 - [certificate authority] Autoridad de Certificacion Firmaprofesional CIF A62634068
 
@@ -24,16 +19,16 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 - module with bundled CAs to latest as of 2022/02/01, 04:12 UTC
 (source: https://curl.se/ca/cacert.pem)
+- [certificate authority] gts root r4
+- [certificate authority] gts root r3
+- [certificate authority] gts root r1
+- [certificate authority] gts root r2
+- [certificate authority] GlobalSign ECC Root CA - R4
 
 ### Removed
 
-- [certificate authority] globalsign
-- [certificate authority] gts root r4
-- [certificate authority] gts root r3
+- [certificate authority] GlobalSign Root CA - R2
 - [certificate authority] cybertrust global root
-- [certificate authority] globalsign
-- [certificate authority] gts root r1
-- [certificate authority] gts root r2
 
 ## [1.11.0] - 2021-10-28
 
