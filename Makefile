@@ -22,7 +22,7 @@ AUTHORITIES_MODULE = src/tls_certificate_check_hardcoded_authorities.erl
 	check dialyzer xref \
 	test cover \
 	shell \
-	doc \
+	doc-dry \
 	publish \
 	hardcoded-authorities-update \
 	hardcoded-authorities-updater \
@@ -61,11 +61,10 @@ shell: export ERL_FLAGS = +pc unicode
 shell:
 	@$(REBAR3) as development shell
 
-doc: $(REBAR3)
-	./support/scripts/generate_docs.sh
+doc-dry: $(REBAR3)
+	@$(REBAR3) hex publish docs --dry-run
 
 publish: $(REBAR3)
-publish: doc
 	@$(REBAR3) hex publish
 
 hardcoded-authorities-update: hardcoded-authorities-updater
