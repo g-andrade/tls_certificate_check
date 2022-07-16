@@ -25,4 +25,4 @@ jobs:
         os: [ubuntu-latest]
     steps:
       - uses: actions/checkout@v2
-      - run: RUNNING_ON_CI=true make check test
+      - run: make check test
