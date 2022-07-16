@@ -14,8 +14,6 @@ jobs:
     name: >
       Run checks and tests over ${{matrix.otp_vsn}} and ${{matrix.os}}
     runs-on: ${{matrix.os}}
-    container:
-      image: erlang:${{matrix.otp_vsn}}
     strategy:
       matrix:
         otp_vsn: ['22.0', '22.1', '22.2', '22.3',
@@ -23,6 +21,43 @@ jobs:
                   '24.0', '24.1', '24.2', '24.3',
                   '25.0']
         os: [ubuntu-latest]
+        rebar3_vsn: ['3.18', '3.19']
+        exclude:
+          # rebar 3.19
+          - rebar3_vsn: '3.19'
+            otp_vsn: '22.0'
+          - rebar3_vsn: '3.19'
+            otp_vsn: '22.1'
+          - rebar3_vsn: '3.19'
+            otp_vsn: '22.2'
+          - rebar3_vsn: '3.19'
+            otp_vsn: '22.3'
+
+          # rebar 3.18
+          - rebar3_vsn: '3.18'
+            otp_vsn: '23.0'
+          - rebar3_vsn: '3.18'
+            otp_vsn: '23.1'
+          - rebar3_vsn: '3.18'
+            otp_vsn: '23.2'
+          - rebar3_vsn: '3.18'
+            otp_vsn: '23.3'
+          #
+          - rebar3_vsn: '3.18'
+            otp_vsn: '24.0'
+          - rebar3_vsn: '3.18'
+            otp_vsn: '24.1'
+          - rebar3_vsn: '3.18'
+            otp_vsn: '24.2'
+          - rebar3_vsn: '3.18'
+            otp_vsn: '24.3'
+          #
+          - rebar3_vsn: '3.18'
+            otp_vsn: '25.0'
     steps:
       - uses: actions/checkout@v2
+      - uses: erlef/setup-beam@v1
+        with:
+          otp-version: ${{matrix.otp_vsn}}
+          rebar3-version: ${{matrix.rebar3_vsn}}
       - run: make check test
