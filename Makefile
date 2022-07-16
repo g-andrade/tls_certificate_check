@@ -62,7 +62,7 @@ shell:
 	@$(REBAR3) as development shell
 
 doc-dry: $(REBAR3)
-	@$(REBAR3) hex publish docs --dry-run
+	@$(REBAR3) hex docs --dry-run
 
 publish: $(REBAR3)
 	@$(REBAR3) hex publish
