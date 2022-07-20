@@ -11,8 +11,9 @@ git config user.name "GitHub Actions"
 git config user.email "actions@users.noreply.github.com"
 
 BASE_BRANCH=master
+git fetch origin
 git checkout "${BASE_BRANCH}"
-git reset --hard
+git reset --hard "origin/${BASE_BRANCH}"
 git clean -ffdx
 
 make hardcoded-authorities-update
