@@ -10,6 +10,21 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ### Added
 
 - OTP 25 to CI
+- [certificate authority] certainly root e1
+- [certificate authority] digicert tls ecc p384 root g5
+- [certificate authority] e-tugra global root ca ecc v3
+- [certificate authority] certainly root r1
+- [certificate authority] digicert tls rsa4096 root g5
+- [certificate authority] e-tugra global root ca rsa v3
+
+### Changed
+
+- module with bundled CAs to latest as of 2022/07/19, 03:12 UTC
+(source: https://curl.se/ca/cacert.pem)
+
+### Removed
+
+- [certificate authority] hellenic academic and research institutions rootca 2011
 
 ### Fixed
 
