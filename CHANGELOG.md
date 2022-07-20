@@ -13,6 +13,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ### Fixed
 
+- fragile automated CHANGELOG updates
 - flaky test case
 
 ## [1.14.0] - 2022-04-27

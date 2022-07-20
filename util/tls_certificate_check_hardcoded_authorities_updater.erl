@@ -52,6 +52,7 @@
 -spec main([string(), ...]) -> no_return().
 main([AuthoritiesFilePath, AuthoritiesSource, OutputModuleFilePath, ChangelogFilePath]) ->
     OutputModuleName = output_module_name(OutputModuleFilePath),
+    {ok, _} = application:ensure_all_started(changelog_updater),
 
     read_authorities_date(#{authorities_file_path => AuthoritiesFilePath,
                             authorities_source => AuthoritiesSource,
@@ -134,15 +135,14 @@ maybe_produce_code(UpdateArgs) ->
 produce_code(#{output_module_file_path := OutputModuleFilePath} = UpdateArgs,
              NewCodeIoData)
 ->
-    {NumberOfAdditions, NumberOfRemovals, UpdatedChangelog, NewVersionString}
+    {NumberOfAdditions, NumberOfRemovals, UpdatedChangelog}
         = compute_differences(UpdateArgs),
 
     case file:write_file(OutputModuleFilePath, NewCodeIoData) of
         ok ->
             write_updated_changelog(UpdateArgs, UpdatedChangelog),
             succeed("Authorities module updated (~b authority(ies) added, ~b removed)",
-                    [NumberOfAdditions, NumberOfRemovals],
-                    NewVersionString);
+                    [NumberOfAdditions, NumberOfRemovals]);
         {error, Reason} ->
             fail("Could not write output module: ~p (path: \"~ts\")",
                  [Reason, OutputModuleFilePath])
@@ -295,10 +295,9 @@ compute_differences(UpdateArgs) ->
 
     case file:read_file(ChangelogFilePath) of
         {ok, Changelog} ->
-            {UpdatedChangelog, NewVersionString}
-                = updated_changelog(UpdateArgs, Changelog, Additions, Removals),
+            UpdatedChangelog = updated_changelog(UpdateArgs, Changelog, Additions, Removals),
 
-            {length(Additions), length(Removals), UpdatedChangelog, NewVersionString};
+            {length(Additions), length(Removals), UpdatedChangelog};
 
         {error, Reason} ->
             fail("Could not read changelog: ~p (path: \"~ts\")",
@@ -326,91 +325,38 @@ previous_authoritative_certificate_values(#{output_module_name := OutputModuleNa
     end.
 
 updated_changelog(UpdateArgs, Changelog, Additions, Removals) ->
-    case binary:match(Changelog, <<"\n## ">>) of
-        {LastReleasePosMinusOne, _} ->
-            LastReleasePos = LastReleasePosMinusOne + 1,
-            {ok, CurrentVersion} = check_that_last_changelog_release_is_complete(Changelog,
-                                                                                 LastReleasePos),
-            updated_changelog_at_position(UpdateArgs, Changelog, LastReleasePos,
-                                          CurrentVersion, Additions, Removals);
-        nomatch ->
-            fail("Could not find position of latest release in changelog", [])
-    end.
+    AdditionEntries = lists:map(fun certificate_changelog_string/1, Additions),
+    ChangeEntry = changelog_change_entry(UpdateArgs),
+    RemovalEntries = lists:map(fun certificate_changelog_string/1, Removals),
 
-check_that_last_changelog_release_is_complete(Changelog, LastReleasePos) ->
-    <<_:LastReleasePos/bytes, LastRelease/bytes>> = Changelog,
-    case re:run(LastRelease, <<"^## \\[([0-9]+)\\.([0-9]+)\\.([0-9]+)">>,
-                [{capture, [1, 2, 3], binary}])
-    of
-        {match, [BinMajorVersion, BinMinorVersion, BinPatchVersion]} ->
-            MajorVersion = binary_to_integer(BinMajorVersion),
-            MinorVersion = binary_to_integer(BinMinorVersion),
-            PatchVersion = binary_to_integer(BinPatchVersion),
-            {ok, {MajorVersion, MinorVersion, PatchVersion}};
-        nomatch ->
-            fail("Unexpected last release info on changelog:~n~p", [LastRelease])
-    end.
+    Changelog2
+        = lists:foldl(
+            fun (AdditionEntry, Acc) ->
+                    {ok, UpdatedAcc} = changelog_updater:insert_addition(AdditionEntry, Acc),
+                    UpdatedAcc
+            end,
+            Changelog,
+            AdditionEntries),
 
+    {ok, Changelog3} = changelog_updater:insert_change(ChangeEntry, Changelog2),
 
-updated_changelog_at_position(UpdateArgs, Changelog, LastReleasePos,
-                              CurrentVersion, Additions, Removals) ->
-    {MajorVersion, MinorVersion, _PatchVersion} = CurrentVersion,
-    NewMinorVersion = MinorVersion + 1,
-    NewPatchVersion = 0,
+    _Changelog4
+        = lists:foldl(
+            fun (RemovalEntry, Acc) ->
+                    {ok, UpdatedAcc} = changelog_updater:insert_removal(RemovalEntry, Acc),
+                    UpdatedAcc
+            end,
+            Changelog3,
+            RemovalEntries).
 
-    <<DataBefore:LastReleasePos/bytes, DataAfter/bytes>> = Changelog,
-
-    NewVersionString = io_lib:format("~b.~b.~b", [MajorVersion, NewMinorVersion, NewPatchVersion]),
-    UpdatedChangelog
-        = unicode:characters_to_binary(
-            [DataBefore,
-             io_lib:format(
-               "## [Unreleased]\n"
-               "~ts"
-               "~ts"
-               "~ts"
-               "\n",
-               [changelog_additions_string(Additions),
-                changelog_changes_string(UpdateArgs),
-                changelog_removals_string(Removals)
-               ]),
-             DataAfter]),
-
-    {UpdatedChangelog, NewVersionString}.
-
-changelog_additions_string([]) ->
-    "";
-changelog_additions_string(Additions) ->
-    io_lib:format(
-      "\n"
-      "### Added\n"
-      "\n"
-      "~ts",
-      [[certificate_changelog_string(Addition) || Addition <- Additions]]
-     ).
-
-changelog_changes_string(UpdateArgs) ->
+changelog_change_entry(UpdateArgs) ->
     #{authorities_source := AuthoritiesSource,
       authorities_date := AuthoritiesDate} = UpdateArgs,
 
     io_lib:format(
-      "\n"
-      "### Changed\n"
-      "\n"
-      "- module with bundled CAs to latest as of ~ts\n"
-      "(source: ~ts)\n",
+      "module with bundled CAs to latest as of ~ts\n"
+      "(source: ~ts)",
       [format_date(AuthoritiesDate), AuthoritiesSource]).
-
-changelog_removals_string([]) ->
-    "";
-changelog_removals_string(Removals) ->
-    io_lib:format(
-      "\n"
-      "### Removed\n"
-      "\n"
-      "~ts",
-      [[certificate_changelog_string(Removal) || Removal <- Removals]]
-     ).
 
 certificate_changelog_string(EncodedCertificate) ->
     SubjectId = public_key:pkix_subject_id(EncodedCertificate),
@@ -427,7 +373,7 @@ certificate_changelog_string(EncodedCertificate) ->
          andalso {printable, io_lib:printable_unicode_list(AuthorityName)}
     of
         {printable, true} ->
-            io_lib:format("- [certificate authority] ~ts\n", [AuthorityName]);
+            io_lib:format("[certificate authority] ~ts", [AuthorityName]);
         {printable, false} ->
             fail("Authority name not printable (~p): ~p", [AuthorityName, SubjectId]);
         false ->
@@ -474,9 +420,8 @@ write_updated_changelog(#{changelog_file_path := ChangelogFilePath}, UpdatedChan
                  [Reason, ChangelogFilePath])
     end.
 
-succeed(Fmt, Args, NewVersionString) ->
+succeed(Fmt, Args) ->
     io:format(standard_error, "[updated] " ++ Fmt ++ "~n", Args),
-    io:format("updated: ~ts~n", [NewVersionString]),
     halt_(0).
 
 fail(Fmt, Args) ->
