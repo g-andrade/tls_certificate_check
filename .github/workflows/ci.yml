@@ -19,7 +19,7 @@ jobs:
         otp_vsn: ['22.0', '22.1', '22.2', '22.3',
                   '23.0', '23.1', '23.2', '23.3',
                   '24.0', '24.1', '24.2', '24.3',
-                  '25.0']
+                  '25.0', '25.1']
         os: [ubuntu-latest]
         rebar3_vsn: ['3.18', '3.19']
         exclude:
@@ -54,6 +54,8 @@ jobs:
           #
           - rebar3_vsn: '3.18'
             otp_vsn: '25.0'
+          - rebar3_vsn: '3.18'
+            otp_vsn: '25.1'
     steps:
       - uses: actions/checkout@v2
       - uses: erlef/setup-beam@v1
