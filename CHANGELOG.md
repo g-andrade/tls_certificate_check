@@ -10,6 +10,13 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ### Added
 
 - OTP 25.1 to CI
+- [certificate authority] security communication ecc rootca1
+- [certificate authority] security communication rootca3
+
+### Changed
+
+- module with bundled CAs to latest as of 2022/10/11, 03:12 UTC
+(source: https://curl.se/ca/cacert.pem)
 
 ## [1.15.0] - 2022-07-20
 
