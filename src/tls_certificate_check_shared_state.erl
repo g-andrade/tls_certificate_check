@@ -22,7 +22,9 @@
 -module(tls_certificate_check_shared_state).
 -behaviour(gen_server).
 
+-include_lib("kernel/include/logger.hrl").
 -include_lib("public_key/include/OTP-PUB-KEY.hrl").
+-include_lib("public_key/include/public_key.hrl").
 -include_lib("stdlib/include/assert.hrl").
 
 %% ------------------------------------------------------------------
@@ -34,7 +36,7 @@
     start_link/0,
     authoritative_certificate_values/0,
     find_trusted_authority/1,
-    maybe_update_shared_state/1
+    maybe_update_shared_state/2
    ]).
 
 -ignore_xref(
@@ -106,6 +108,8 @@
 
 -type public_key_info() :: #'OTPSubjectPublicKeyInfo'{}.
 
+-type update_opt() :: force_hardcoded.
+
 %% ------------------------------------------------------------------
 %% API Function Definitions
 %% ------------------------------------------------------------------
@@ -136,10 +140,12 @@ find_trusted_authority(EncodedCertificates) ->
     Now = universal_time_in_certificate_format(),
     find_trusted_authority_recur(EncodedCertificates, Now, TrustedPublicKeys).
 
--spec maybe_update_shared_state(binary()) -> ok | {error, term()}.
-maybe_update_shared_state(EncodedAuthorities) ->
+-spec maybe_update_shared_state(binary(), [update_opt()]) -> ok | {error, term()}.
+maybe_update_shared_state(EncodedHardcodedAuthorities, Opts) ->
     try
-        gen_server:call(?SERVER, {update_shared_state, EncodedAuthorities}, infinity)
+        gen_server:call(?SERVER,
+                        _Req = {update_shared_state, EncodedHardcodedAuthorities, Opts},
+                        _Timeout = infinity)
     catch
         exit:{noproc, {gen_server, call, [?SERVER | _]}} ->
             ok
@@ -152,8 +158,8 @@ maybe_update_shared_state(EncodedAuthorities) ->
 -spec proc_lib_init() -> no_return().
 proc_lib_init() ->
     % do this before registering to ensure initialization is triggered before any update
-    EncodedAuthorities = tls_certificate_check_hardcoded_authorities:encoded_list(),
-    gen_server:cast(self(), {initialize_shared_state, EncodedAuthorities}),
+    EncodedHardcodedAuthorities = tls_certificate_check_hardcoded_authorities:encoded_list(),
+    gen_server:cast(self(), {initialize_shared_state, EncodedHardcodedAuthorities}),
 
     try register(?SERVER, self()) of
         true ->
@@ -180,9 +186,9 @@ init(_) ->
         -> {reply, ok, state()} |
            {reply, {error, term()}, state()} |
            {stop, {unexpected_call, #{request := _, from := {pid(), reference()}}}, state()}.
-handle_call({update_shared_state, EncodedAuthorities}, _From, State)
+handle_call({update_shared_state, EncodedHardcodedAuthorities, Opts}, _From, State)
   when State#state.shared_state_initialized ->
-    handle_shared_state_update(EncodedAuthorities, State);
+    handle_shared_state_update(EncodedHardcodedAuthorities, Opts, State);
 handle_call(Request, From, State) ->
     ErrorDetails = #{request => Request, from => From},
     {stop, {unexpected_call, ErrorDetails}, State}.
@@ -191,9 +197,9 @@ handle_call(Request, From, State) ->
         -> {noreply, state()} |
            {stop, normal, state()} |
            {stop, {unexpected_cast, term()}, state()}.
-handle_cast({initialize_shared_state, EncodedAuthorities}, State)
+handle_cast({initialize_shared_state, EncodedHardcodedAuthorities}, State)
   when not State#state.shared_state_initialized ->
-    handle_shared_state_initialization(EncodedAuthorities, State);
+    handle_shared_state_initialization(EncodedHardcodedAuthorities, State);
 handle_cast(Request, State) ->
     {stop, {unexpected_cast, Request}, State}.
 
@@ -224,8 +230,8 @@ new_info_table() ->
     Opts = [named_table, protected, {read_concurrency, true}],
     ets:new(?INFO_TABLE, Opts).
 
-handle_shared_state_initialization(EncodedAuthorities, State) ->
-    case new_shared_state(EncodedAuthorities) of
+handle_shared_state_initialization(EncodedHardcodedAuthorities, State) ->
+    case new_shared_state(EncodedHardcodedAuthorities, _Opts = []) of
         {ok, Key} ->
             ?assert( ets:insert_new(?INFO_TABLE, [{latest_shared_state_key, Key}]) ),
             proc_lib:init_ack({ok, self()}),
@@ -236,8 +242,8 @@ handle_shared_state_initialization(EncodedAuthorities, State) ->
             {stop, normal, State}
     end.
 
-handle_shared_state_update(EncodedAuthorities, State) ->
-    case new_shared_state(EncodedAuthorities) of
+handle_shared_state_update(EncodedHardcodedAuthorities, Opts, State) ->
+    case new_shared_state(EncodedHardcodedAuthorities, Opts) of
         {ok, Key} ->
             ets:insert(?INFO_TABLE, [{latest_shared_state_key, Key}]),
             {reply, ok, State};
@@ -245,8 +251,11 @@ handle_shared_state_update(EncodedAuthorities, State) ->
             {reply, Error, State}
     end.
 
-new_shared_state(EncodedAuthorities) ->
-    case tls_certificate_check_util:parse_encoded_authorities(EncodedAuthorities) of
+new_shared_state(EncodedHardcodedAuthorities, UpdateOpts) ->
+    ForceHardcoded = proplists:get_value(force_hardcoded, UpdateOpts,
+                                         _DefaultForceHardcoded = false),
+
+    case maybe_load_authorities_trusted_by_os(ForceHardcoded, EncodedHardcodedAuthorities) of
         {ok, AuthoritativeCertificateValues} ->
             NewSharedState
                 = #shared_state{
@@ -254,6 +263,39 @@ new_shared_state(EncodedAuthorities) ->
                      trusted_public_keys = trusted_public_keys(AuthoritativeCertificateValues)
                     },
             save_shared_state(NewSharedState);
+        {error, _Reason} = Error ->
+            Error
+    end.
+
+-ifdef(NO_PUBLIC_KEY_CACERTS_GET).
+
+maybe_load_authorities_trusted_by_os(_ForceHardcoded, EncodedHardcodedAuthorities) ->
+    decode_hardcoded_authorities(EncodedHardcodedAuthorities).
+
+-else. % -ifdef(NO_PUBLIC_KEY_CACERTS_GET)
+
+maybe_load_authorities_trusted_by_os(false = _ForceHardcoded, EncodedHardcodedAuthorities) ->
+    try public_key:cacerts_get() of
+        CombinedAuthoritativeCertificateValues when is_list(CombinedAuthoritativeCertificateValues) ->
+            AuthoritativeCertificateValues
+                = [CombinedCert#cert.der || CombinedCert
+                                            <- CombinedAuthoritativeCertificateValues],
+            {ok, AuthoritativeCertificateValues}
+    catch
+        Class:Reason when Class =/= error, Reason =/= undef ->
+            ?LOG_WARNING("Failed to load OS supplied trusted CA certificates: ~p:~p",
+                         [Class, Reason]),
+            decode_hardcoded_authorities(EncodedHardcodedAuthorities)
+    end;
+maybe_load_authorities_trusted_by_os(true = _ForceHardcoded, EncodedHardcodedAuthorities) ->
+    decode_hardcoded_authorities(EncodedHardcodedAuthorities).
+
+-endif. % -ifdef(NO_PUBLIC_KEY_CACERTS_GET)
+
+decode_hardcoded_authorities(EncodedHardcodedAuthorities) ->
+    case tls_certificate_check_util:parse_encoded_authorities(EncodedHardcodedAuthorities) of
+        {ok, _AuthoritativeCertificateValues} = Success ->
+            Success;
         {error, Reason} ->
             {error, {failed_to_decode_authorities, Reason}}
     end.

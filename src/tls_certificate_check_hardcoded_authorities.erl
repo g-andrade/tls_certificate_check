@@ -65,7 +65,14 @@ encoded_list() ->
 maybe_update_shared_state() ->
     % For code swaps / release upgrades
     EncodedCertificates = encoded_list(),
-    tls_certificate_check_shared_state:maybe_update_shared_state(EncodedCertificates).
+    UpdateOpts = update_opts(),
+    tls_certificate_check_shared_state:maybe_update_shared_state(EncodedCertificates, UpdateOpts).
+
+-ifdef(TEST).
+update_opts() -> [force_hardcoded].
+-else.
+update_opts() -> [].
+-endif.
 
 encoded_list_() ->
     <<"##\n",
