@@ -57,6 +57,8 @@ jobs:
             otp_vsn: '25.0'
           - rebar3_vsn: '3.18'
             otp_vsn: '25.1'
+          - rebar3_vsn: '3.18'
+            otp_vsn: '25.2'
     steps:
       - uses: actions/checkout@v2
       - uses: erlef/setup-beam@v1
