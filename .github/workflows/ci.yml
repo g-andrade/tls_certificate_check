@@ -22,16 +22,16 @@ jobs:
                   '24.0', '24.1', '24.2', '24.3',
                   '25.0', '25.1']
         os: ['ubuntu-20.04']
-        rebar3_vsn: ['3.18', '3.19']
+        rebar3_vsn: ['3.18', '3.20']
         exclude:
-          # rebar 3.19
-          - rebar3_vsn: '3.19'
+          # rebar 3.20
+          - rebar3_vsn: '3.20'
             otp_vsn: '22.0'
-          - rebar3_vsn: '3.19'
+          - rebar3_vsn: '3.20'
             otp_vsn: '22.1'
-          - rebar3_vsn: '3.19'
+          - rebar3_vsn: '3.20'
             otp_vsn: '22.2'
-          - rebar3_vsn: '3.19'
+          - rebar3_vsn: '3.20'
             otp_vsn: '22.3'
 
           # rebar 3.18
