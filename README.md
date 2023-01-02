@@ -17,10 +17,11 @@ as well as the boilerplate code required for validating [misordered
 certificate chains](https://github.com/elixir-mint/mint/issues/95).
 
 The
-[OS-provided CA store](https://www.erlang.org/doc/man/public_key.html#cacerts_get-0)
-is used on OTP 25+ unless it's empty or unavailable, in which case `tls_certificate_check`
-defaults to [Mozilla's CA certificate
-store](https://curl.se/docs/caextract.html) as extracted by `curl`.
+[OTP-trusted CAs](https://www.erlang.org/doc/man/public_key.html#cacerts_get-0)
+(typically provided by the OS) are used on OTP 25+ unless unavailable,
+in which case `tls_certificate_check` falls back to [Mozilla's CA certificate
+store](https://curl.se/docs/caextract.html) as extracted by `curl`. Older OTP versions
+only use the latter.
 
 The trusted authorities' certificates are loaded when the application
 starts and made available to the API through
