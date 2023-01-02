@@ -93,7 +93,9 @@
 -define(INFO_TABLE, ?SERVER).
 -define(HIBERNATE_AFTER, (timer:seconds(10))).
 
--ifndef(NO_PUBLIC_KEY_CACERTS_GET).
+-ifdef(NO_PUBLIC_KEY_CACERTS_GET).
+-define(DEFAULT_USE_OTP_TRUSTED_CAs, (false)).
+-else.
 -define(DEFAULT_USE_OTP_TRUSTED_CAs, (true)).
 -endif.
 
