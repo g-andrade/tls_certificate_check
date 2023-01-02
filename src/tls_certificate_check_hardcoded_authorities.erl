@@ -80,7 +80,7 @@ maybe_update_shared_state() ->
     end.
 
 -ifdef(TEST).
-update_opts() -> [force_encoded].
+update_opts() -> [force_unprocessed].
 -else.
 update_opts() -> [].
 -endif.

@@ -38,6 +38,7 @@ all() ->
      badly_encoded_override_test,
      non_existent_file_test,
      app_stopped_test,
+     decoded_test,
      certifi_test,
      castore_test].
 
@@ -60,7 +61,7 @@ end_per_testcase(TestCase, _Config) ->
 %
 
 empty_override_test(_Config) ->
-    ?assertThrow({failed_to_decode_authorities, no_authoritative_certificates_found},
+    ?assertThrow({failed_to_process_authorities, no_authoritative_certificates_found},
                  tls_certificate_check:override_trusted_authorities({encoded, <<>>})),
     assert_good_conn().
 
@@ -81,7 +82,7 @@ badly_encoded_override_test(_Config) ->
       "gzT/LCrBbBlDSgeF59N89iFo7+ryUp9/k5DPAgMBAAGjQjBAMA4GA1UdDwEB/wQEAwIBBjAPBgNV\n",
       "HRMBAf8EBTADAQH/MB0GA1UdDgQWBBRge2YaRQ2XyolQL30EzTSo//z9SzANBgkqhkiG9w0BAQUF\n"
     >>,
-    ?assertThrow({failed_to_decode_authorities, {failed_to_decode, _}},
+    ?assertThrow({failed_to_process_authorities, {failed_to_decode, _}},
                  tls_certificate_check:override_trusted_authorities({encoded, EncodedAuthorities})),
 
     assert_good_conn().
@@ -96,6 +97,11 @@ non_existent_file_test(_Config) ->
 app_stopped_test(_Config) ->
     ?assertThrow({application_either_not_started_or_not_ready, tls_certificate_check},
                  tls_certificate_check:override_trusted_authorities({encoded, <<>>})).
+
+decoded_test(_Config) ->
+    CAs = tls_certificate_check:trusted_authorities(),
+    ok = tls_certificate_check:override_trusted_authorities(CAs),
+    assert_good_conn().
 
 certifi_test(_Config) ->
     {ok, _} = application:ensure_all_started(certifi),
