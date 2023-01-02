@@ -31,12 +31,14 @@
 
 -export(
    [options/1,
-    trusted_authorities/0
+    trusted_authorities/0,
+    override_trusted_authorities/1
    ]).
 
 -ignore_xref(
    [options/1,
-    trusted_authorities/0
+    trusted_authorities/0,
+    override_trusted_authorities/1
    ]).
 
 %% ------------------------------------------------------------------
@@ -53,6 +55,9 @@
 
 -type option() :: ssl:tls_client_option().
 -export_type([option/0]).
+
+-type override_source() :: {file, Path :: file:name_all()} | {encoded, binary()}.
+-export_type([override_source/0]).
 
 %% ------------------------------------------------------------------
 %% API Function Definitions
@@ -98,6 +103,17 @@ options(Target) ->
 trusted_authorities() ->
     tls_certificate_check_shared_state:authoritative_certificate_values().
 
+%% @doc Overrides the trusted authorities with a custom source.
+-spec override_trusted_authorities(From) -> ok
+      when From :: override_source().
+override_trusted_authorities(Source) ->
+    case try_overriding_trusted_authorities(Source) of
+        ok ->
+            ok;
+        {error, Reason} ->
+            throw(Reason)
+    end.
+
 %% ------------------------------------------------------------------
 %% Internal Function Definitions
 %% ------------------------------------------------------------------
@@ -119,6 +135,32 @@ hostname_check_opts() ->
     Protocol = https,
     MatchFun = public_key:pkix_verify_hostname_match_fun(Protocol),
     [{customize_hostname_check, [{match_fun, MatchFun}]}].
+
+-spec try_overriding_trusted_authorities(From) -> ok | {error, Reason}
+      when From :: override_source(),
+           Reason :: term().
+try_overriding_trusted_authorities({file, Path} = OverrideSource) ->
+    case file:read_file(Path) of
+        {ok, EncodedAuthorities} ->
+            try_overriding_trusted_authorities(_Source = OverrideSource,
+                                               EncodedAuthorities);
+        {error, Reason} ->
+            {error, {read_file, #{path => Path, why => Reason}}}
+    end;
+try_overriding_trusted_authorities({encoded, <<EncodedAuthorities/bytes>>} = OverrideSource) ->
+    try_overriding_trusted_authorities(_Source = OverrideSource,
+                                       EncodedAuthorities).
+
+try_overriding_trusted_authorities(Source, EncodedAuthorities) ->
+    Opts = [force_encoded],
+    case tls_certificate_check_shared_state:maybe_update_shared_state(Source,
+                                                                      EncodedAuthorities,
+                                                                      Opts) of
+        noproc ->
+            {error, {application_either_not_started_or_not_ready, tls_certificate_check}};
+        Other ->
+            Other
+    end.
 
 %% ------------------------------------------------------------------
 %% Unit Test Definitions
