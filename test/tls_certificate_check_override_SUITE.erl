@@ -37,7 +37,9 @@ all() ->
     [empty_override_test,
      badly_encoded_override_test,
      non_existent_file_test,
-     app_stopped_test].
+     app_stopped_test,
+     certifi_test,
+     castore_test].
 
 init_per_testcase(TestCase, Config) ->
     _ = TestCase =/= app_stopped_test
@@ -95,9 +97,33 @@ app_stopped_test(_Config) ->
     ?assertThrow({application_either_not_started_or_not_ready, tls_certificate_check},
                  tls_certificate_check:override_trusted_authorities({encoded, <<>>})).
 
+certifi_test(_Config) ->
+    {ok, _} = application:ensure_all_started(certifi),
+    try
+        do_file_test(fun certifi:cacertfile/0)
+    after
+        ok = application:stop(certifi)
+    end.
+
+castore_test(_Config) ->
+    case application:ensure_all_started(castore) of
+        {ok, _} ->
+            try
+                do_file_test(fun 'Elixir.CAStore':file_path/0)
+            after
+                ok = application:stop(castore)
+            end;
+        {error, Reason} ->
+            {skip, {"Elixir's CAStore not available", Reason}}
+    end.
+
 %% ------------------------------------------------------------------
 %% Internal
 %% ------------------------------------------------------------------
+
+do_file_test(PathFun) ->
+    ok = tls_certificate_check:override_trusted_authorities({file, PathFun()}),
+    assert_good_conn().
 
 assert_good_conn() ->
     tls_certificate_check_test_utils:connect(

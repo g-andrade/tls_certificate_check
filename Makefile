@@ -2,6 +2,13 @@ AUTHORITIES_URL = https://curl.se/ca/cacert.pem
 AUTHORITIES_FILE = tmp/cacerts.pem
 AUTHORITIES_MODULE = src/tls_certificate_check_hardcoded_authorities.erl
 
+ifeq (, $(shell which mix))
+$(warning skipping Elixir-dependent tests)
+TEST_PROFILES = test
+else
+TEST_PROFILES = test,elixir_test
+endif
+
 .PHONY: all build clean \
 	check dialyzer xref \
 	test cover \
@@ -37,7 +44,7 @@ xref:
 	@rebar3 as hardcoded_authorities_update xref
 
 test:
-	@rebar3 do eunit, ct, cover
+	@rebar3 as $(TEST_PROFILES) do eunit, ct, cover
 
 cover: test
 
