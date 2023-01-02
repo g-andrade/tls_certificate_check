@@ -18,14 +18,15 @@ certificate chains](https://github.com/elixir-mint/mint/issues/95).
 
 The
 [OTP-trusted CAs](https://www.erlang.org/doc/man/public_key.html#cacerts_get-0)
-(typically provided by the OS) are used on OTP 25+ unless unavailable or opted-out[^1],
+(typically provided by the OS) are initially used on OTP 25+ unless unavailable or opted-out[^1],
 in which case `tls_certificate_check` falls back to [Mozilla's CA certificate
 store](https://curl.se/docs/caextract.html) as extracted by `curl`. Older OTP versions
-only use the latter.
+will initialize using only the latter.
 
 The trusted authorities' certificates are loaded when the application
 starts and made available to the API through
-[`persistent_term`](https://erlang.org/doc/man/persistent_term.html).
+[`persistent_term`](https://erlang.org/doc/man/persistent_term.html). After that, they can
+be explicitly overridden through the API.
 
 ### Usage - Erlang
 
@@ -34,21 +35,21 @@ starts and made available to the API through
 rebar.config
 
 ``` erlang
-{deps,
- [% [...]
-  {tls_certificate_check, "~> 1.16"}
-  ]}.
+{deps, [
+    % [...]
+    {tls_certificate_check, "~> 1.16"}
+]}.
 ```
 
 your\_application.app.src
 
 ``` erlang
-  {applications,
-   [kernel,
+{applications, [
+    kernel,
     stdlib,
     % [...]
     tls_certificate_check
-   ]}
+]}
 ```
 
 ##### 2\. Make your connections safer
@@ -80,6 +81,24 @@ mix.exs
 host = "example.com"
 options = :tls_certificate_check.options(host)
 :ssl.connect(host, 443, options, 5000)
+```
+
+### Advanced Usage
+
+#### Overriding Trusted CAs
+
+##### Erlang
+
+```erlang
+Path = certifi:cacertfile(),
+tls_certificate_check:override_trusted_authorities({file, Path})
+```
+
+##### Elixir
+
+```elixir
+path = CAStore.file_path()
+:tls_certificate_check.override_trusted_authorities({:file, path})
 ```
 
 ### API Reference

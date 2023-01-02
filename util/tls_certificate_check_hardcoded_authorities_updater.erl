@@ -103,7 +103,7 @@ read_encoded_authorities(#{authorities_file_path := AuthoritiesFilePath} = Updat
     end.
 
 parse_encoded_authorities(#{encoded_authorities := EncodedAuthorities} = UpdateArgs) ->
-    case tls_certificate_check_util:parse_encoded_authorities(EncodedAuthorities) of
+    case tls_certificate_check_util:process_authorities(EncodedAuthorities) of
         {ok, AuthoritativeCertificateValues} ->
             ExtendedUpdateArgs = UpdateArgs#{authoritative_certificate_values
                                              => AuthoritativeCertificateValues},
@@ -242,10 +242,15 @@ generate_code(#{authorities_source := AuthoritiesSource,
       "    % For code swaps / release upgrades\n"
       "    EncodedCertificates = encoded_list(),\n"
       "    UpdateOpts = update_opts(),\n"
-      "    tls_certificate_check_shared_state:maybe_update_shared_state(EncodedCertificates, UpdateOpts).\n"
+      "    case tls_certificate_check_shared_state:maybe_update_shared_state(_Source = 'Hardcoded authorities',\n"
+      "                                                                      EncodedCertificates,\n"
+      "                                                                      UpdateOpts) of\n"
+      "        noproc -> ok;\n"
+      "        Other -> Other\n"
+      "    end.\n"
       "\n"
       "-ifdef(TEST).\n"
-      "update_opts() -> [force_hardcoded].\n"
+      "update_opts() -> [force_unprocessed].\n"
       "-else.\n"
       "update_opts() -> [].\n"
       "-endif.\n"
@@ -330,7 +335,7 @@ certificate_differences(#{authoritative_certificate_values
 previous_authoritative_certificate_values(#{output_module_name := OutputModuleName}) ->
     try OutputModuleName:encoded_list() of
         <<EncodedList/bytes>> ->
-            {ok, List} = tls_certificate_check_util:parse_encoded_authorities(EncodedList),
+            {ok, List} = tls_certificate_check_util:process_authorities(EncodedList),
             List
     catch
         error:undef ->

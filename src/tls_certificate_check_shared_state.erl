@@ -22,13 +22,10 @@
 -module(tls_certificate_check_shared_state).
 -behaviour(gen_server).
 
+-include_lib("kernel/include/logger.hrl").
 -include_lib("public_key/include/OTP-PUB-KEY.hrl").
 -include_lib("public_key/include/public_key.hrl").
 -include_lib("stdlib/include/assert.hrl").
-
--ifndef(NO_PUBLIC_KEY_CACERTS_GET).
--include_lib("kernel/include/logger.hrl").
--endif.
 
 %% ------------------------------------------------------------------
 %% API Function Exports
@@ -39,7 +36,7 @@
     start_link/0,
     authoritative_certificate_values/0,
     find_trusted_authority/1,
-    maybe_update_shared_state/2
+    maybe_update_shared_state/3
    ]).
 
 -ignore_xref(
@@ -117,7 +114,7 @@
 
 -type public_key_info() :: #'OTPSubjectPublicKeyInfo'{}.
 
--type update_opt() :: force_hardcoded.
+-type update_opt() :: force_unprocessed.
 
 %% ------------------------------------------------------------------
 %% API Function Definitions
@@ -149,15 +146,16 @@ find_trusted_authority(EncodedCertificates) ->
     Now = universal_time_in_certificate_format(),
     find_trusted_authority_recur(EncodedCertificates, Now, TrustedPublicKeys).
 
--spec maybe_update_shared_state(binary(), [update_opt()]) -> ok | {error, term()}.
-maybe_update_shared_state(EncodedHardcodedAuthorities, Opts) ->
+-spec maybe_update_shared_state(term(), binary() | [public_key:der_encoded()], [update_opt()])
+    -> ok | {error, term()} | noproc.
+maybe_update_shared_state(Source, UnprocessedAuthorities, Opts) ->
     try
         gen_server:call(?SERVER,
-                        _Req = {update_shared_state, EncodedHardcodedAuthorities, Opts},
+                        _Req = {update_shared_state, Source, UnprocessedAuthorities, Opts},
                         _Timeout = infinity)
     catch
         exit:{noproc, {gen_server, call, [?SERVER | _]}} ->
-            ok
+            noproc
     end.
 
 %% ------------------------------------------------------------------
@@ -195,9 +193,9 @@ init(_) ->
         -> {reply, ok, state()} |
            {reply, {error, term()}, state()} |
            {stop, {unexpected_call, #{request := _, from := {pid(), reference()}}}, state()}.
-handle_call({update_shared_state, EncodedHardcodedAuthorities, Opts}, _From, State)
+handle_call({update_shared_state, Source, UnprocessedAuthorities, Opts}, _From, State)
   when State#state.shared_state_initialized ->
-    handle_shared_state_update(EncodedHardcodedAuthorities, Opts, State);
+    handle_shared_state_update(Source, UnprocessedAuthorities, Opts, State);
 handle_call(Request, From, State) ->
     ErrorDetails = #{request => Request, from => From},
     {stop, {unexpected_call, ErrorDetails}, State}.
@@ -240,8 +238,13 @@ new_info_table() ->
     ets:new(?INFO_TABLE, Opts).
 
 handle_shared_state_initialization(EncodedHardcodedAuthorities, State) ->
-    case new_shared_state(EncodedHardcodedAuthorities, _Opts = []) of
-        {ok, Key} ->
+    case new_shared_state(_EncodedAuthoritiesSource = 'Hardcoded authorities',
+                          EncodedHardcodedAuthorities,
+                          _Opts = []) of
+        {ok, Key, SharedState, FinalSource} ->
+            ?LOG_INFO("Loaded ~b CA(s) from ~p",
+                      [length(SharedState#shared_state.authoritative_certificate_values),
+                       FinalSource]),
             ?assert( ets:insert_new(?INFO_TABLE, [{latest_shared_state_key, Key}]) ),
             proc_lib:init_ack({ok, self()}),
             UpdatedState = State#state{shared_state_initialized = true},
@@ -251,69 +254,82 @@ handle_shared_state_initialization(EncodedHardcodedAuthorities, State) ->
             {stop, normal, State}
     end.
 
-handle_shared_state_update(EncodedHardcodedAuthorities, Opts, State) ->
-    case new_shared_state(EncodedHardcodedAuthorities, Opts) of
-        {ok, Key} ->
+handle_shared_state_update(Source, UnprocessedAuthorities, Opts, State) ->
+    case new_shared_state(_UnprocessedAuthoritiesSource = Source, UnprocessedAuthorities, Opts) of
+        {ok, Key, SharedState, FinalSource} ->
+            ?LOG_NOTICE("Updated with ~b CA(s) from ~p",
+                        [length(SharedState#shared_state.authoritative_certificate_values),
+                            FinalSource]),
             ets:insert(?INFO_TABLE, [{latest_shared_state_key, Key}]),
             {reply, ok, State};
+
         {error, _Reason} = Error ->
             {reply, Error, State}
     end.
 
-new_shared_state(EncodedHardcodedAuthorities, UpdateOpts) ->
+new_shared_state(UnprocessedAuthoritiesSource, UnprocessedAuthorities, UpdateOpts) ->
     UseOtpTrustedCAs
         = application:get_env(tls_certificate_check, use_otp_trusted_CAs,
                               ?DEFAULT_USE_OTP_TRUSTED_CAs),
-    ForceHardcoded
-        = proplists:get_value(force_hardcoded, UpdateOpts, _DefaultForceHardcoded = false)
+    ForceUnprocessed
+        = proplists:get_value(force_unprocessed, UpdateOpts, _DefaultForceUnprocessed = false)
           or not UseOtpTrustedCAs,
 
-    case maybe_load_authorities_trusted_by_otp(ForceHardcoded, EncodedHardcodedAuthorities) of
-        {ok, AuthoritativeCertificateValues} ->
+    case maybe_load_authorities_trusted_by_otp(ForceUnprocessed,
+                                               UnprocessedAuthorities,
+                                               UnprocessedAuthoritiesSource)
+    of
+        {ok, AuthoritativeCertificateValues, Source} ->
             NewSharedState
                 = #shared_state{
                      authoritative_certificate_values = AuthoritativeCertificateValues,
                      trusted_public_keys = trusted_public_keys(AuthoritativeCertificateValues)
                     },
-            save_shared_state(NewSharedState);
+            save_shared_state(NewSharedState, Source);
         {error, _Reason} = Error ->
             Error
     end.
 
 -ifdef(NO_PUBLIC_KEY_CACERTS_GET).
 
-maybe_load_authorities_trusted_by_otp(_ForceHardcoded, EncodedHardcodedAuthorities) ->
-    decode_hardcoded_authorities(EncodedHardcodedAuthorities).
+maybe_load_authorities_trusted_by_otp(_ForceUnprocessed,
+                                      UnprocessedAuthorities,
+                                      UnprocessedAuthoritiesSource) ->
+    process_authorities(UnprocessedAuthorities, UnprocessedAuthoritiesSource).
 
 -else. % -ifdef(NO_PUBLIC_KEY_CACERTS_GET)
 
-maybe_load_authorities_trusted_by_otp(false = _ForceHardcoded, EncodedHardcodedAuthorities) ->
+maybe_load_authorities_trusted_by_otp(false = _ForceUnprocessed,
+                                      UnprocessedAuthorities,
+                                      UnprocessedAuthoritiesSource) ->
     try public_key:cacerts_get() of
         [] ->
             ?LOG_WARNING("OTP trusts no CAs, falling back to hardcoded authorities"),
-            decode_hardcoded_authorities(EncodedHardcodedAuthorities);
+            process_authorities(UnprocessedAuthorities, UnprocessedAuthoritiesSource);
         CombinedAuthoritativeCertificateValues when is_list(CombinedAuthoritativeCertificateValues) ->
             AuthoritativeCertificateValues
                 = [CombinedCert#cert.der || CombinedCert
                                             <- CombinedAuthoritativeCertificateValues],
-            {ok, AuthoritativeCertificateValues}
+            {ok, AuthoritativeCertificateValues, _Source = 'CAs trusted by OTP'}
     catch
         Class:Reason when Class =/= error, Reason =/= undef ->
             ?LOG_WARNING("Failed to load OTP-trusted CAs: ~p:~p"
                          ", falling back to hardcoded authorities", [Class, Reason]),
-            decode_hardcoded_authorities(EncodedHardcodedAuthorities)
+            process_authorities(UnprocessedAuthorities, UnprocessedAuthoritiesSource)
     end;
-maybe_load_authorities_trusted_by_otp(true = _ForceHardcoded, EncodedHardcodedAuthorities) ->
-    decode_hardcoded_authorities(EncodedHardcodedAuthorities).
+maybe_load_authorities_trusted_by_otp(true = _ForceUnprocessed,
+                                      UnprocessedAuthorities,
+                                      UnprocessedAuthoritiesSource) ->
+    process_authorities(UnprocessedAuthorities, UnprocessedAuthoritiesSource).
 
 -endif. % -ifdef(NO_PUBLIC_KEY_CACERTS_GET)
 
-decode_hardcoded_authorities(EncodedHardcodedAuthorities) ->
-    case tls_certificate_check_util:parse_encoded_authorities(EncodedHardcodedAuthorities) of
-        {ok, _AuthoritativeCertificateValues} = Success ->
-            Success;
+process_authorities(UnprocessedAuthorities, Source) ->
+    case tls_certificate_check_util:process_authorities(UnprocessedAuthorities) of
+        {ok, AuthoritativeCertificateValues} ->
+            {ok, AuthoritativeCertificateValues, Source};
         {error, Reason} ->
-            {error, {failed_to_decode_authorities, Reason}}
+            {error, {failed_to_process_authorities, Reason}}
     end.
 
 trusted_public_keys(AuthoritativeCertificateValues) ->
@@ -326,10 +342,10 @@ trusted_public_keys(AuthoritativeCertificateValues) ->
       end,
       #{}, AuthoritativeCertificateValues).
 
-save_shared_state(SharedState) ->
+save_shared_state(SharedState, Source) ->
     Key = shared_state_key(SharedState),
     persistent_term:put(Key, SharedState),
-    {ok, Key}.
+    {ok, Key, SharedState, Source}.
 
 shared_state_key(SharedState) ->
     CanonicalSharedStateRepresentation = canonical_shared_state_representation(SharedState),

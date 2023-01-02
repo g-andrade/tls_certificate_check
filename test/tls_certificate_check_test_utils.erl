@@ -36,9 +36,7 @@ connect(PemsPath, AuthoritiesFilename, ChainOrLeaf, ChainOrLeafFilename, Fun) ->
 
 connect(PemsPath, AuthoritiesFilename, ChainOrLeaf, ChainOrLeafFilename, KeyFilename, Fun) ->
     AuthoritiesPath = filename:join([PemsPath, "CA_stores", AuthoritiesFilename]),
-    {ok, EncodedAuthorities} = file:read_file(AuthoritiesPath),
-    ok = tls_certificate_check_shared_state:maybe_update_shared_state(EncodedAuthorities,
-                                                                      [force_hardcoded]),
+    ok = tls_certificate_check:override_trusted_authorities({file, AuthoritiesPath}),
 
     {ListenSocket, Port, AcceptorPid} = start_server_with_chain(PemsPath, ChainOrLeaf,
                                                                 ChainOrLeafFilename,

@@ -72,10 +72,15 @@ maybe_update_shared_state() ->
     % For code swaps / release upgrades
     EncodedCertificates = encoded_list(),
     UpdateOpts = update_opts(),
-    tls_certificate_check_shared_state:maybe_update_shared_state(EncodedCertificates, UpdateOpts).
+    case tls_certificate_check_shared_state:maybe_update_shared_state(_Source = 'Hardcoded authorities',
+                                                                      EncodedCertificates,
+                                                                      UpdateOpts) of
+        noproc -> ok;
+        Other -> Other
+    end.
 
 -ifdef(TEST).
-update_opts() -> [force_hardcoded].
+update_opts() -> [force_unprocessed].
 -else.
 update_opts() -> [].
 -endif.

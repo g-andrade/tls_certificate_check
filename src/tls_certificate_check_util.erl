@@ -26,29 +26,31 @@
 %% ------------------------------------------------------------------
 
 -export(
-    [parse_encoded_authorities/1
+    [process_authorities/1
      ]).
 
 %% ------------------------------------------------------------------
 %% API Function Definitions
 %% ------------------------------------------------------------------
 
--spec parse_encoded_authorities(binary())
+-spec process_authorities(binary() | [public_key:der_encoded()])
         -> {ok, [public_key:der_encoded(), ...]}
            | {error, no_authoritative_certificates_found}
            | {error, {failed_to_decode, {atom(), term(), list()}}}
            | {error, {certificate_encrypted, public_key:der_encoded()}}
            | {error, {unexpected_certificate_format, tuple()}}.
-parse_encoded_authorities(EncodedAuthorities) ->
+process_authorities(<<EncodedAuthorities/bytes>>) ->
     try public_key:pem_decode(EncodedAuthorities) of
-        [_|_] = AuthoritativeCertificates ->
-            authoritative_certificate_values(AuthoritativeCertificates);
-        [] ->
-            {error, no_authoritative_certificates_found}
+        List when is_list(List) ->
+            process_authorities(List)
     catch
         Class:Reason:Stacktrace ->
             {error, {failed_to_decode, {Class, Reason, Stacktrace}}}
-    end.
+    end;
+process_authorities([_|_] = AuthoritativeCertificateValues) ->
+    authoritative_certificate_values(AuthoritativeCertificateValues);
+process_authorities([]) ->
+    {error, no_authoritative_certificates_found}.
 
 %% ------------------------------------------------------------------
 %% API Function Definitions
@@ -64,6 +66,9 @@ authoritative_certificate_values_recur([Head | Next], ValuesAcc) ->
             authoritative_certificate_values_recur(Next, UpdatedValuesAcc);
         {'Certificate', _, _} ->
             {error, {certificate_encrypted, Head}};
+        <<DerEncoded/bytes>> ->
+            UpdatedValuesAcc = [DerEncoded | ValuesAcc],
+            authoritative_certificate_values_recur(Next, UpdatedValuesAcc);
         Other ->
             {error, {unexpected_certificate_format, Other}}
     end;
