@@ -9,8 +9,12 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ### Added
 
-- import of OS-provided CAs by default
+- import of OS-provided CAs on OTP 25+
 - Windows to CI
+
+### Changed
+
+- CAs to the ones provided by the OS, when available, on OTP 25+
 
 ## [1.16.0] - 2022-10-11
 
