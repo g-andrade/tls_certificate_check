@@ -147,8 +147,8 @@ try_overriding_trusted_authorities({file, Path} = OverrideSource) ->
         {error, Reason} ->
             {error, {read_file, #{path => Path, why => Reason}}}
     end;
-try_overriding_trusted_authorities({encoded, <<EncodedAuthorities/bytes>>} = OverrideSource) ->
-    try_overriding_trusted_authorities(_Source = OverrideSource,
+try_overriding_trusted_authorities({encoded, <<EncodedAuthorities/bytes>>}) ->
+    try_overriding_trusted_authorities(_Source = 'API',
                                        EncodedAuthorities).
 
 try_overriding_trusted_authorities(Source, EncodedAuthorities) ->
