@@ -18,7 +18,7 @@ certificate chains](https://github.com/elixir-mint/mint/issues/95).
 
 The
 [OTP-trusted CAs](https://www.erlang.org/doc/man/public_key.html#cacerts_get-0)
-(typically provided by the OS) are used on OTP 25+ unless unavailable,
+(typically provided by the OS) are used on OTP 25+ unless unavailable or opted-out[^1],
 in which case `tls_certificate_check` falls back to [Mozilla's CA certificate
 store](https://curl.se/docs/caextract.html) as extracted by `curl`. Older OTP versions
 only use the latter.
@@ -91,6 +91,11 @@ The API reference can be found on
 
   - Erlang/OTP 22 or newer
   - rebar3
+
+### Notes
+
+[^1]: the use of OTP-trusted CAs can be controlled through the `use_otp_trusted_CAs` boolean
+option within application env config.
 
 ### License
 

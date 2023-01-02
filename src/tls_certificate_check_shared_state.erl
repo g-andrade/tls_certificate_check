@@ -90,6 +90,10 @@
 -define(INFO_TABLE, ?SERVER).
 -define(HIBERNATE_AFTER, (timer:seconds(10))).
 
+-ifndef(NO_PUBLIC_KEY_CACERTS_GET).
+-define(DEFAULT_USE_OTP_TRUSTED_CAs, (true)).
+-endif.
+
 -define(SHARED_STATE_KEY_PREFIX, "__$tls_certificate_check.shared_state.").
 
 %% ------------------------------------------------------------------
@@ -252,10 +256,14 @@ handle_shared_state_update(EncodedHardcodedAuthorities, Opts, State) ->
     end.
 
 new_shared_state(EncodedHardcodedAuthorities, UpdateOpts) ->
-    ForceHardcoded = proplists:get_value(force_hardcoded, UpdateOpts,
-                                         _DefaultForceHardcoded = false),
+    UseOtpTrustedCAs
+        = application:get_env(tls_certificate_check, use_otp_trusted_CAs,
+                              ?DEFAULT_USE_OTP_TRUSTED_CAs),
+    ForceHardcoded
+        = proplists:get_value(force_hardcoded, UpdateOpts, _DefaultForceHardcoded = false)
+          or not UseOtpTrustedCAs,
 
-    case maybe_load_authorities_trusted_by_os(ForceHardcoded, EncodedHardcodedAuthorities) of
+    case maybe_load_authorities_trusted_by_otp(ForceHardcoded, EncodedHardcodedAuthorities) of
         {ok, AuthoritativeCertificateValues} ->
             NewSharedState
                 = #shared_state{
@@ -269,12 +277,12 @@ new_shared_state(EncodedHardcodedAuthorities, UpdateOpts) ->
 
 -ifdef(NO_PUBLIC_KEY_CACERTS_GET).
 
-maybe_load_authorities_trusted_by_os(_ForceHardcoded, EncodedHardcodedAuthorities) ->
+maybe_load_authorities_trusted_by_otp(_ForceHardcoded, EncodedHardcodedAuthorities) ->
     decode_hardcoded_authorities(EncodedHardcodedAuthorities).
 
 -else. % -ifdef(NO_PUBLIC_KEY_CACERTS_GET)
 
-maybe_load_authorities_trusted_by_os(false = _ForceHardcoded, EncodedHardcodedAuthorities) ->
+maybe_load_authorities_trusted_by_otp(false = _ForceHardcoded, EncodedHardcodedAuthorities) ->
     try public_key:cacerts_get() of
         CombinedAuthoritativeCertificateValues when is_list(CombinedAuthoritativeCertificateValues) ->
             AuthoritativeCertificateValues
@@ -287,7 +295,7 @@ maybe_load_authorities_trusted_by_os(false = _ForceHardcoded, EncodedHardcodedAu
                          [Class, Reason]),
             decode_hardcoded_authorities(EncodedHardcodedAuthorities)
     end;
-maybe_load_authorities_trusted_by_os(true = _ForceHardcoded, EncodedHardcodedAuthorities) ->
+maybe_load_authorities_trusted_by_otp(true = _ForceHardcoded, EncodedHardcodedAuthorities) ->
     decode_hardcoded_authorities(EncodedHardcodedAuthorities).
 
 -endif. % -ifdef(NO_PUBLIC_KEY_CACERTS_GET)

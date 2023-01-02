@@ -15,7 +15,9 @@
     %% Dependencies outside OTP
     ssl_verify_fun
    ]},
-  {env,[]},
+  {env, [
+      % {use_otp_trusted_CAs, true}
+  ]},
   {modules, []},
 
   {licenses, ["MIT"]},
