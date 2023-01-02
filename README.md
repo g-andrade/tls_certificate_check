@@ -5,22 +5,26 @@
 [![Erlang Versions](https://img.shields.io/badge/Supported%20Erlang%2FOTP-22%20to%2025-blue)](https://www.erlang.org)
 
 `tls_certificate_check` is a library for Erlang/OTP and Elixir intended
-on easing the establishement of [more
-secure](https://wiki.mozilla.org/index.php?title=CA/IncludedCertificates&redirect=no)
-HTTPS connections in ordinary setups.
+on easing the establishement of [more secure HTTPS
+connections](https://wiki.mozilla.org/index.php?title=CA/IncludedCertificates&redirect=no)
+in ordinary setups.
 
 Other kinds of TLS/SSL connections may also benefit from it.
 
-It wraps [Mozilla's CA certificate
-store](https://curl.se/docs/caextract.html), as extracted by `curl`,
-together with
+It blends a CA certificate store together with
 [ssl\_verify\_fun](https://github.com/deadtrickster/ssl_verify_fun.erl)
-plus all the the boilerplate code required for validating [misordered
+as well as the boilerplate code required for validating [misordered
 certificate chains](https://github.com/elixir-mint/mint/issues/95).
 
-The trusted authorities' certificates are hardcoded in PEM format,
-decoded when the application starts and made available to the API
-through
+The
+[OTP-trusted CAs](https://www.erlang.org/doc/man/public_key.html#cacerts_get-0)
+(typically provided by the OS) are used on OTP 25+ unless unavailable or opted-out[^1],
+in which case `tls_certificate_check` falls back to [Mozilla's CA certificate
+store](https://curl.se/docs/caextract.html) as extracted by `curl`. Older OTP versions
+only use the latter.
+
+The trusted authorities' certificates are loaded when the application
+starts and made available to the API through
 [`persistent_term`](https://erlang.org/doc/man/persistent_term.html).
 
 ### Usage - Erlang
@@ -112,3 +116,8 @@ IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
 CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
 TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
 SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+
+---
+
+[^1]: the use of OTP-trusted CAs can be controlled through the `use_otp_trusted_CAs` boolean
+option within application env config.
