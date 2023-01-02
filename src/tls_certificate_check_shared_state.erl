@@ -22,10 +22,13 @@
 -module(tls_certificate_check_shared_state).
 -behaviour(gen_server).
 
--include_lib("kernel/include/logger.hrl").
 -include_lib("public_key/include/OTP-PUB-KEY.hrl").
 -include_lib("public_key/include/public_key.hrl").
 -include_lib("stdlib/include/assert.hrl").
+
+-ifndef(NO_PUBLIC_KEY_CACERTS_GET).
+-include_lib("kernel/include/logger.hrl").
+-endif.
 
 %% ------------------------------------------------------------------
 %% API Function Exports
@@ -294,8 +297,8 @@ maybe_load_authorities_trusted_by_otp(false = _ForceHardcoded, EncodedHardcodedA
             {ok, AuthoritativeCertificateValues}
     catch
         Class:Reason when Class =/= error, Reason =/= undef ->
-            ?LOG_WARNING("Failed to load OS supplied trusted CA certificates: ~p:~p",
-                         [Class, Reason]),
+            ?LOG_WARNING("Failed to load OTP-trusted CAs: ~p:~p"
+                         ", falling back to hardcoded authorities", [Class, Reason]),
             decode_hardcoded_authorities(EncodedHardcodedAuthorities)
     end;
 maybe_load_authorities_trusted_by_otp(true = _ForceHardcoded, EncodedHardcodedAuthorities) ->
