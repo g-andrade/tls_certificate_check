@@ -92,11 +92,6 @@ The API reference can be found on
   - Erlang/OTP 22 or newer
   - rebar3
 
-### Notes
-
-[^1]: the use of OTP-trusted CAs can be controlled through the `use_otp_trusted_CAs` boolean
-option within application env config.
-
 ### License
 
 MIT License
@@ -121,3 +116,8 @@ IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
 CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
 TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
 SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+
+---
+
+[^1]: the use of OTP-trusted CAs can be controlled through the `use_otp_trusted_CAs` boolean
+option within application env config.
