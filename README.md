@@ -5,22 +5,25 @@
 [![Erlang Versions](https://img.shields.io/badge/Supported%20Erlang%2FOTP-22%20to%2025-blue)](https://www.erlang.org)
 
 `tls_certificate_check` is a library for Erlang/OTP and Elixir intended
-on easing the establishement of [more
-secure](https://wiki.mozilla.org/index.php?title=CA/IncludedCertificates&redirect=no)
-HTTPS connections in ordinary setups.
+on easing the establishement of [more secure HTTPS
+connections](https://wiki.mozilla.org/index.php?title=CA/IncludedCertificates&redirect=no)
+in ordinary setups.
 
 Other kinds of TLS/SSL connections may also benefit from it.
 
-It wraps [Mozilla's CA certificate
-store](https://curl.se/docs/caextract.html), as extracted by `curl`,
-together with
+It blends a CA certificate store together with
 [ssl\_verify\_fun](https://github.com/deadtrickster/ssl_verify_fun.erl)
-plus all the the boilerplate code required for validating [misordered
+as well as the boilerplate code required for validating [misordered
 certificate chains](https://github.com/elixir-mint/mint/issues/95).
 
-The trusted authorities' certificates are hardcoded in PEM format,
-decoded when the application starts and made available to the API
-through
+The
+[OS-provided CA store](https://www.erlang.org/doc/man/public_key.html#cacerts_get-0)
+is used on OTP 25+ unless it's empty or unavailable, in which case `tls_certificate_check`
+defaults to [Mozilla's CA certificate
+store](https://curl.se/docs/caextract.html) as extracted by `curl`.
+
+The trusted authorities' certificates are loaded when the application
+starts and made available to the API through
 [`persistent_term`](https://erlang.org/doc/man/persistent_term.html).
 
 ### Usage - Erlang
