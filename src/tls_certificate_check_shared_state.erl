@@ -284,6 +284,9 @@ maybe_load_authorities_trusted_by_otp(_ForceHardcoded, EncodedHardcodedAuthoriti
 
 maybe_load_authorities_trusted_by_otp(false = _ForceHardcoded, EncodedHardcodedAuthorities) ->
     try public_key:cacerts_get() of
+        [] ->
+            ?LOG_WARNING("OTP trusts no CAs, falling back to hardcoded authorities"),
+            decode_hardcoded_authorities(EncodedHardcodedAuthorities);
         CombinedAuthoritativeCertificateValues when is_list(CombinedAuthoritativeCertificateValues) ->
             AuthoritativeCertificateValues
                 = [CombinedCert#cert.der || CombinedCert
