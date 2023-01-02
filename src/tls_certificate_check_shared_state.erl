@@ -22,13 +22,10 @@
 -module(tls_certificate_check_shared_state).
 -behaviour(gen_server).
 
+-include_lib("kernel/include/logger.hrl").
 -include_lib("public_key/include/OTP-PUB-KEY.hrl").
 -include_lib("public_key/include/public_key.hrl").
 -include_lib("stdlib/include/assert.hrl").
-
--ifndef(NO_PUBLIC_KEY_CACERTS_GET).
--include_lib("kernel/include/logger.hrl").
--endif.
 
 %% ------------------------------------------------------------------
 %% API Function Exports
