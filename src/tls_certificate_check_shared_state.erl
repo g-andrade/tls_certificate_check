@@ -240,7 +240,7 @@ handle_shared_state_initialization(EncodedHardcodedAuthorities, State) ->
     case new_shared_state(_EncodedAuthoritiesSource = 'Hardcoded authorities',
                           EncodedHardcodedAuthorities,
                           _Opts = []) of
-        {ok, Key, SharedState, FinalSource, _WasNew} ->
+        {ok, Key, SharedState, FinalSource} ->
             ?LOG_INFO("Loaded ~b CA(s) from ~p",
                       [length(SharedState#shared_state.authoritative_certificate_values),
                        FinalSource]),
@@ -255,12 +255,10 @@ handle_shared_state_initialization(EncodedHardcodedAuthorities, State) ->
 
 handle_shared_state_update(Source, EncodedAuthorities, Opts, State) ->
     case new_shared_state(_EncodedAuthoritiesSource = Source, EncodedAuthorities, Opts) of
-        {ok, Key, SharedState, FinalSource, WasNew} ->
-            _ = WasNew andalso
-                ?LOG_NOTICE("Updated with ~b CA(s) from ~p",
-                            [length(SharedState#shared_state.authoritative_certificate_values),
-                             FinalSource]),
-
+        {ok, Key, SharedState, FinalSource} ->
+            ?LOG_NOTICE("Updated with ~b CA(s) from ~p",
+                        [length(SharedState#shared_state.authoritative_certificate_values),
+                            FinalSource]),
             ets:insert(?INFO_TABLE, [{latest_shared_state_key, Key}]),
             {reply, ok, State};
 
@@ -345,11 +343,8 @@ trusted_public_keys(AuthoritativeCertificateValues) ->
 
 save_shared_state(SharedState, Source) ->
     Key = shared_state_key(SharedState),
-
-    PrevSharedState = persistent_term:get(Key, undefined),
     persistent_term:put(Key, SharedState),
-    WasNew = (SharedState =/= PrevSharedState),
-    {ok, Key, SharedState, Source, WasNew}.
+    {ok, Key, SharedState, Source}.
 
 shared_state_key(SharedState) ->
     CanonicalSharedStateRepresentation = canonical_shared_state_representation(SharedState),
