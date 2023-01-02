@@ -2,7 +2,7 @@ AUTHORITIES_URL = https://curl.se/ca/cacert.pem
 AUTHORITIES_FILE = tmp/cacerts.pem
 AUTHORITIES_MODULE = src/tls_certificate_check_hardcoded_authorities.erl
 
-ifeq (, $(shell which mix))
+ifeq (no, $(shell mix -v >/dev/null 2>/dev/null || echo -n "no"))
 $(warning skipping Elixir-dependent tests)
 TEST_PROFILES = test
 else
