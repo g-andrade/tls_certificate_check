@@ -59,7 +59,7 @@
 -type override_source()
     :: {file, Path :: file:name_all()}
     |  {encoded, binary()}
-    |  CAs :: [public_key:der_encoded()]
+    |  (CAs :: [public_key:der_encoded()])
     .
 -export_type([override_source/0]).
 
