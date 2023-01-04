@@ -65,4 +65,6 @@ jobs:
         with:
           otp-version: ${{matrix.otp_vsn}}
           rebar3-version: ${{matrix.rebar3_vsn}}
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
       - run: make check test
