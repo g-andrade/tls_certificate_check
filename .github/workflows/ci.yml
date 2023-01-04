@@ -67,7 +67,7 @@ jobs:
       - name: restore _build/default
         uses: actions/cache@v3
         with:
-          path: _build/default
+          path: _build/default # '_build/test' has symlinks which cache 3.2.2 doesn't support on Windows
           key: _build-slash-default-cache-for-os-${{runner.os}}-otp-${{matrix.otp_vsn}}-rebar3-${{matrix.rebar3_vsn}}-hash-${{hashFiles('rebar.lock')}}
       - name: restore rebar3's cache
         uses: actions/cache@v3
