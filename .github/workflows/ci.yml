@@ -64,7 +64,7 @@ jobs:
           rebar3-version: ${{matrix.rebar3_vsn}}
         env:
           GITHUB_TOKEN: ${{ github.token }}
-      - name: restore _build
+      - name: restore _build/default
         uses: actions/cache@v3
         with:
           path: _build/default
