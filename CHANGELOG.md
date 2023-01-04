@@ -11,6 +11,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 - ability to override trusted CAs
 - Windows to CI
+- OTP 25.2 to CI
 
 ### Changed
 
