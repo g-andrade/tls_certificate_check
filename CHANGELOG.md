@@ -16,6 +16,16 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ### Changed
 
 - default CAs to the ones trusted by OTP (typically provided by the OS), when available, on OTP 25+
+- module with bundled CAs to latest as of 2023/01/10, 04:12 UTC
+(source: https://curl.se/ca/cacert.pem)
+
+### Removed
+
+- [certificate authority] network solutions certificate authority
+- [certificate authority] TrustCor ECA-1
+- [certificate authority] TrustCor RootCert CA-1
+- [certificate authority] Staat der Nederlanden EV Root CA
+- [certificate authority] TrustCor RootCert CA-2
 
 ## [1.16.0] - 2022-10-11
 
