@@ -4,28 +4,29 @@
 [![](https://github.com/g-andrade/tls_certificate_check/actions/workflows/ci.yml/badge.svg)](https://github.com/g-andrade/tls_certificate_check/actions/workflows/ci.yml)
 [![Erlang Versions](https://img.shields.io/badge/Supported%20Erlang%2FOTP-22%20to%2025-blue)](https://www.erlang.org)
 
-`tls_certificate_check` is a library for Erlang/OTP and Elixir intended
-on easing the establishement of [more secure HTTPS
+`tls_certificate_check` is a library for Erlang/OTP and Elixir that
+tries to make it easier to establish [more secure HTTPS
 connections](https://wiki.mozilla.org/index.php?title=CA/IncludedCertificates&redirect=no)
 in ordinary setups.
 
 Other kinds of TLS/SSL connections may also benefit from it.
 
-It blends a CA certificate store together with
+It blends a CA trust store with
 [ssl\_verify\_fun](https://github.com/deadtrickster/ssl_verify_fun.erl)
-as well as the boilerplate code required for validating [misordered
+to verify remote hostnames,
+as well as the boilerplate to validate [misordered
 certificate chains](https://github.com/elixir-mint/mint/issues/95).
 
 The
 [OTP-trusted CAs](https://www.erlang.org/doc/man/public_key.html#cacerts_get-0)
-(typically provided by the OS) are initially used on OTP 25+ unless unavailable or opted-out[^1],
-in which case `tls_certificate_check` falls back to [Mozilla's CA certificate
-store](https://curl.se/docs/caextract.html) as extracted by `curl`. Older OTP versions
-will initialize using only the latter.
+(typically provided by the OS) are used on OTP 25+ unless unavailable or opted-out[^1],
+in which case `tls_certificate_check` falls back to a hardcoded [Mozilla's CA certificate
+store](https://curl.se/docs/caextract.html), as extracted by `curl`.
+When on OTP 24 or older, the lib will initialize using only the latter.
 
 The trusted authorities' certificates are loaded when the application
 starts and made available to the API through
-[`persistent_term`](https://erlang.org/doc/man/persistent_term.html). After that, they can
+[`persistent_term`](https://erlang.org/doc/man/persistent_term.html)[^2]. After that, they can
 be explicitly overridden through the API.
 
 ### Usage - Erlang
@@ -140,3 +141,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 [^1]: the use of OTP-trusted CAs can be controlled through the `use_otp_trusted_CAs` boolean
 option within application env config.
+
+[^2]: the persistent term key is derived from the CA store's own contents and existing keys
+are not erased until the app terminates gracefully - this minimizes the risk of an impactful
+global garbage collection.
