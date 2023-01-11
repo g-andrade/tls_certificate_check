@@ -230,10 +230,11 @@ handle_info(Info, State) ->
     {stop, {unexpected_info, Info}, State}.
 
 -spec terminate(term(), state()) -> ok.
-terminate(_Reason, _State) ->
+terminate(Reason, _State) ->
     ets:delete_all_objects(?INFO_TABLE),
     erlang:yield(),
-    _ = destroy_all_shared_states(),
+    _ = tls_certificate_check_util:is_termination_reason_wholesome(Reason)
+        andalso destroy_all_shared_states(),
     ok.
 
 -spec code_change(term(), state() | term(), term())

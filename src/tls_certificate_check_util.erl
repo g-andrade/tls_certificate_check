@@ -25,7 +25,8 @@
 %% API Function Exports
 %% ------------------------------------------------------------------
 
--export([process_authorities/1]).
+-export([process_authorities/1,
+         is_termination_reason_wholesome/1]).
 
 %% ------------------------------------------------------------------
 %% API Function Definitions
@@ -49,6 +50,16 @@ process_authorities([_|_] = AuthoritativeCertificateValues) ->
     authoritative_certificate_values(AuthoritativeCertificateValues);
 process_authorities([]) ->
     {error, no_authoritative_certificates_found}.
+
+-spec is_termination_reason_wholesome(term()) -> boolean().
+is_termination_reason_wholesome(normal) ->
+    true;
+is_termination_reason_wholesome(shutdown) ->
+    true;
+is_termination_reason_wholesome({shutdown, _}) ->
+    true;
+is_termination_reason_wholesome(_) ->
+    false.
 
 %% ------------------------------------------------------------------
 %% API Function Definitions

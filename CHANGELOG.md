@@ -16,6 +16,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ### Changed
 
 - default CAs to the ones trusted by OTP (typically provided by the OS), when available, on OTP 25+
+- shared state process to not erase its `persistent_term`s when crashing
 - module with bundled CAs to latest as of 2023/01/10, 04:12 UTC
 (source: https://curl.se/ca/cacert.pem)
 
