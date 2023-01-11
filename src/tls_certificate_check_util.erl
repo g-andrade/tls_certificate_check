@@ -25,9 +25,7 @@
 %% API Function Exports
 %% ------------------------------------------------------------------
 
--export(
-    [process_authorities/1
-     ]).
+-export([process_authorities/1]).
 
 %% ------------------------------------------------------------------
 %% API Function Definitions

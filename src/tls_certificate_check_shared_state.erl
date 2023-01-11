@@ -31,60 +31,50 @@
 %% API Function Exports
 %% ------------------------------------------------------------------
 
--export(
-   [child_spec/0,
-    start_link/0,
-    authoritative_certificate_values/0,
-    find_trusted_authority/1,
-    maybe_update_shared_state/2
-   ]).
+-export([child_spec/0,
+         start_link/0,
+         authoritative_certificate_values/0,
+         find_trusted_authority/1,
+         maybe_update_shared_state/2]).
 
 -ignore_xref(
-   [start_link/0
-   ]).
+        [start_link/0]).
 
 %% Hacks
 -export([maybe_update_shared_state/1]).
 
--ignore_xref(maybe_update_shared_state/1).
+-ignore_xref(
+        [maybe_update_shared_state/1]).
 
 %%-------------------------------------------------------------------
 %% OTP Process Function Exports
 %%-------------------------------------------------------------------
 
--export(
-   [proc_lib_init/0
-   ]).
+-export([proc_lib_init/0]).
 
 -ignore_xref(
-   [proc_lib_init/0
-   ]).
+        [proc_lib_init/0]).
 
 %% ------------------------------------------------------------------
 %% gen_server Function Exports
 %% ------------------------------------------------------------------
 
--export(
-   [init/1,
-    handle_call/3,
-    handle_cast/2,
-    handle_info/2,
-    terminate/2,
-    code_change/3
-   ]).
+-export([init/1,
+         handle_call/3,
+         handle_cast/2,
+         handle_info/2,
+         terminate/2,
+         code_change/3]).
 
 %% ------------------------------------------------------------------
 %% Internal Function Exports
 %% ------------------------------------------------------------------
 
 -ifdef(TEST).
--export(
-   [latest_shared_state_key/0
-   ]).
+-export([latest_shared_state_key/0]).
 
 -ignore_xref(
-   [latest_shared_state_key/0
-   ]).
+        [latest_shared_state_key/0]).
 -endif.
 
 %% ------------------------------------------------------------------
@@ -115,14 +105,14 @@
 %% ------------------------------------------------------------------
 
 -record(state, {
-          shared_state_initialized :: boolean()
-         }).
+    shared_state_initialized :: boolean()
+}).
 -type state() :: #state{}.
 
 -record(shared_state, {
-          authoritative_certificate_values :: [public_key:der_encoded(), ...],
-          trusted_public_keys :: #{public_key_info() := []}
-         }).
+    authoritative_certificate_values :: [public_key:der_encoded(), ...],
+    trusted_public_keys :: #{public_key_info() := []}
+}).
 
 -type public_key_info() :: #'OTPSubjectPublicKeyInfo'{}.
 

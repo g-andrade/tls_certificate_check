@@ -1,27 +1,28 @@
-{application, tls_certificate_check,
- [{description, "CA store + Partial chain handler"},
-  {vsn, git},
-  {registered,
-   [tls_certificate_check_hardcoded_authorities_updater,
-    tls_certificate_check_sup
-   ]},
-  {mod, {tls_certificate_check_app, []}},
-  {applications,
-   [crypto,
-    kernel,
-    public_key,
-    ssl,
-    stdlib,
-    %% Dependencies outside OTP
-    ssl_verify_fun
-   ]},
-  {env, [
-      % {use_otp_trusted_CAs, true}
-  ]},
-  {modules, []},
+{application, tls_certificate_check, [
+    {description, "CA store + Partial chain handler"},
+    {vsn, git},
+    {registered, [
+        tls_certificate_check_hardcoded_authorities_updater,
+        tls_certificate_check_sup
+     ]},
+    {mod, {tls_certificate_check_app, []}},
+    {applications, [
+        crypto,
+        kernel,
+        public_key,
+        ssl,
+        stdlib,
+        %% Dependencies outside OTP
+        ssl_verify_fun
+    ]},
+    {env, [
+        % {use_otp_trusted_CAs, true} %% Available on OTP 25+
+    ]},
+    {modules, []},
 
-  {licenses, ["MIT"]},
-  {links, [{"GitHub", "https://github.com/g-andrade/tls_certificate_check"},
-           {"GitLab", "https://gitlab.com/g-andrade/tls_certificate_check"}
-          ]}
- ]}.
+    {licenses, ["MIT"]},
+    {links, [
+        {"GitHub", "https://github.com/g-andrade/tls_certificate_check"},
+        {"GitLab", "https://gitlab.com/g-andrade/tls_certificate_check"}
+    ]}
+]}.

@@ -29,17 +29,14 @@
 %% API Function Exports
 %% ------------------------------------------------------------------
 
--export(
-   [options/1,
+-export([options/1,
     trusted_authorities/0,
-    override_trusted_authorities/1
-   ]).
+    override_trusted_authorities/1]).
 
 -ignore_xref(
-   [options/1,
-    trusted_authorities/0,
-    override_trusted_authorities/1
-   ]).
+        [options/1,
+         trusted_authorities/0,
+         override_trusted_authorities/1]).
 
 %% ------------------------------------------------------------------
 %% Macro Definitions
