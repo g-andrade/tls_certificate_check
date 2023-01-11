@@ -263,20 +263,17 @@ handle_shared_state_initialization(EncodedHardcodedAuthorities, State) ->
 handle_shared_state_update(Source, UnprocessedAuthorities, State) ->
     case new_shared_state(_UnprocessedAuthoritiesSource = Source, UnprocessedAuthorities) of
         {ok, Key, SharedState, FinalSource} ->
-            Priority = source_priority(FinalSource),
-            _ = (not is_there_a_higher_priority_store(Priority)
-                 andalso is_key_different_from_stored(Priority, Key)
-                 andalso ?LOG_NOTICE(
-                            "Updating with ~b CA(s) from ~p store",
-                            [length(SharedState#shared_state.authoritative_certificate_values),
-                             FinalSource])),
-
-            ets:insert(?INFO_TABLE, {{latest_shared_state_key, Priority}, Key}),
-            {reply, ok, State};
-
+            handle_shared_state_update_(Key, SharedState, FinalSource, State);
         {error, _Reason} = Error ->
             {reply, Error, State}
     end.
+
+handle_shared_state_update_(Key, SharedState, FinalSource, State) ->
+    Priority = source_priority(FinalSource),
+    NrOfCAs = length(SharedState#shared_state.authoritative_certificate_values),
+    maybe_log_update(Priority, Key, NrOfCAs, FinalSource),
+    ets:insert(?INFO_TABLE, {{latest_shared_state_key, Priority}, Key}),
+    {reply, ok, State}.
 
 source_priority({override, _}) ->
     1000;
@@ -284,6 +281,23 @@ source_priority(otp) ->
     100;
 source_priority(hardcoded) ->
     10.
+
+maybe_log_update(Priority, Key, NrOfCAs, FinalSource) ->
+    case is_there_a_higher_priority_store(Priority)
+         orelse {are_there_changes, is_key_different_from_stored(Priority, Key)}
+    of
+        true ->
+            ?LOG_INFO("Update with ~b CA(s) from ~p store"
+                      " is bypassed by a higher priority store",
+                      [NrOfCAs, FinalSource]);
+
+        {are_there_changes, true} ->
+            ?LOG_NOTICE("Updating with ~b CA(s) from ~p store",
+                        [NrOfCAs, FinalSource]);
+
+        {are_there_changes, false} ->
+            ok
+    end.
 
 is_there_a_higher_priority_store(Priority) ->
     MatchSpec = ets:fun2ms(fun ({{latest_shared_state_key, P}, _}) -> P > Priority end),
