@@ -23,7 +23,6 @@
 
 -include_lib("kernel/include/file.hrl").
 -include_lib("public_key/include/OTP-PUB-KEY.hrl").
--include_lib("stdlib/include/assert.hrl").
 
 %% ------------------------------------------------------------------
 %% API Function Exports
