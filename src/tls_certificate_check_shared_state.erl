@@ -43,6 +43,11 @@
    [start_link/0
    ]).
 
+%% Hacks
+-export([maybe_update_shared_state/1]).
+
+-ignore_xref(maybe_update_shared_state/1).
+
 %%-------------------------------------------------------------------
 %% OTP Process Function Exports
 %%-------------------------------------------------------------------
@@ -164,6 +169,19 @@ maybe_update_shared_state(Source, UnprocessedAuthorities) ->
             noproc
     end.
 
+%%
+%% Hack for hot swap
+%%
+-spec maybe_update_shared_state(binary() | [public_key:der_encoded()])
+    -> ok | {error, term()}.
+maybe_update_shared_state(UnprocessedAuthorities) ->
+    case maybe_update_shared_state(_Source = hardcoded, UnprocessedAuthorities) of
+        noproc ->
+            ok;
+        Result ->
+            Result
+    end.
+
 %% ------------------------------------------------------------------
 %% OTP Process Function Definitions
 %% ------------------------------------------------------------------
@@ -231,6 +249,18 @@ terminate(_Reason, _State) ->
 -spec code_change(term(), state() | term(), term())
         -> {ok, state()} | {error, {cannot_convert_state, term()}}.
 code_change(_OldVsn, #state{} = State, _Extra) ->
+    HardcodedStorePriority = source_priority(hardcoded),
+    PrevPointer = latest_shared_state,
+    NewPointer = {latest_shared_state, HardcodedStorePriority},
+
+    _ = case [ets:lookup(?INFO_TABLE, K) || K <- [PrevPointer, NewPointer]] of
+            [[{_, KeyForHardcodedStore}], []] ->
+                ?LOG_NOTICE("Migrating existing hardcoded store to new key"),
+                ets:insert(?INFO_TABLE, {NewPointer, KeyForHardcodedStore});
+            [_, _] ->
+                ok
+        end,
+
     {ok, State};
 code_change(_OldVsn, State, _Extra) ->
     {error, {cannot_convert_state, State}}.
