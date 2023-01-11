@@ -2,7 +2,7 @@
     {description, "CA store + Partial chain handler"},
     {vsn, git},
     {registered, [
-        tls_certificate_check_hardcoded_authorities_updater,
+        tls_certificate_check_shared_state,
         tls_certificate_check_sup
      ]},
     {mod, {tls_certificate_check_app, []}},
