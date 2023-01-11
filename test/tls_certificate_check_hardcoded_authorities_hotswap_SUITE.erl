@@ -33,6 +33,8 @@ all() ->
     ].
 
 init_per_suite(Config) ->
+    _ = application:load(tls_certificate_check),
+    application:set_env(tls_certificate_check, use_otp_trusted_CAs, false),
     {ok, _} = application:ensure_all_started(tls_certificate_check),
     Config.
 

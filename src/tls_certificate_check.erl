@@ -146,21 +146,21 @@ hostname_check_opts() ->
 try_overriding_trusted_authorities({file, Path} = OverrideSource) ->
     case file:read_file(Path) of
         {ok, EncodedAuthorities} ->
-            try_overriding_trusted_authorities(_Source = OverrideSource,
+            try_overriding_trusted_authorities(_Source = {override, OverrideSource},
                                                EncodedAuthorities);
         {error, Reason} ->
             {error, {read_file, #{path => Path, why => Reason}}}
     end;
 try_overriding_trusted_authorities({encoded, <<EncodedAuthorities/bytes>>}) ->
-    try_overriding_trusted_authorities(_Source = 'API', EncodedAuthorities);
+    try_overriding_trusted_authorities(_Source = {override, encoded_binary},
+                                       EncodedAuthorities);
 try_overriding_trusted_authorities(Authorities) when is_list(Authorities) ->
-    try_overriding_trusted_authorities(_Source = 'API', Authorities).
+    try_overriding_trusted_authorities(_Source = {override, list_of_cas},
+                                       Authorities).
 
 try_overriding_trusted_authorities(Source, UnprocessedAuthorities) ->
-    Opts = [force_unprocessed],
     case tls_certificate_check_shared_state:maybe_update_shared_state(Source,
-                                                                      UnprocessedAuthorities,
-                                                                      Opts)
+                                                                      UnprocessedAuthorities)
     of
         noproc ->
             {error, {application_either_not_started_or_not_ready, tls_certificate_check}};
