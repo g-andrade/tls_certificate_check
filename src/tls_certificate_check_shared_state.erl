@@ -62,7 +62,6 @@
 -export([init/1,
          handle_call/3,
          handle_cast/2,
-         handle_info/2,
          terminate/2,
          code_change/3]).
 
@@ -223,11 +222,6 @@ handle_cast({initialize_shared_state, EncodedHardcodedAuthorities}, State)
     handle_shared_state_initialization(EncodedHardcodedAuthorities, State);
 handle_cast(Request, State) ->
     {stop, {unexpected_cast, Request}, State}.
-
--spec handle_info(term(), state())
-        -> {stop, {unexpected_info, term()}, state()}.
-handle_info(Info, State) ->
-    {stop, {unexpected_info, Info}, State}.
 
 -spec terminate(term(), state()) -> ok.
 terminate(Reason, _State) ->
