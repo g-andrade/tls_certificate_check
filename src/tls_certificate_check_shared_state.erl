@@ -27,6 +27,10 @@
 -include_lib("public_key/include/public_key.hrl").
 -include_lib("stdlib/include/ms_transform.hrl").
 
+-ifdef(TEST).
+-include_lib("eunit/include/eunit.hrl").
+-endif.
+
 %% ------------------------------------------------------------------
 %% API Function Exports
 %% ------------------------------------------------------------------
@@ -369,7 +373,7 @@ maybe_load_authorities_trusted_by_otp(true = _UseOtpTrustedCAs,
                                             <- CombinedAuthoritativeCertificateValues],
             {ok, AuthoritativeCertificateValues, _Source = otp}
     catch
-        Class:Reason when Class =/= error, Reason =/= undef ->
+        Class:Reason when Class =/= error; Reason =/= undef ->
             ?LOG_WARNING("Failed to load OTP-trusted CAs: ~p:~p"
                          ", falling back to hardcoded authorities", [Class, Reason]),
             process_authorities(UnprocessedAuthorities, UnprocessedAuthoritiesSource)
@@ -522,3 +526,25 @@ compare_certificate_timestamps_([X|A], [Y|B]) ->
     end;
 compare_certificate_timestamps_([], []) ->
     equal.
+
+%% ------------------------------------------------------------------
+%% Unit Test Definitions
+%% ------------------------------------------------------------------
+-ifdef(TEST).
+-ifndef(NO_PUBLIC_KEY_CACERTS_GET).
+
+missing_otp_provided_CAs_falls_back_gracefully_test() ->
+    _ = application:stop(tls_certificate_check),
+    {ok, _} = application:ensure_all_started(meck),
+    {ok, _} = application:ensure_all_started(public_key),
+
+    ok = meck:new(public_key, [passthrough]),
+    ok = meck:expect(public_key, cacerts_get, fun () -> error({badmatch, foobar}) end),
+    try
+        {ok, _} = application:ensure_all_started(tls_certificate_check)
+    after
+        ok = meck:unload(public_key)
+    end.
+
+-endif.
+-endif.
