@@ -10,6 +10,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ### Fixed
 
 - error starting application when OS-trusted CAs fail to load on OTP 25
+[present since 1.17.0]
 
 ## [1.17.3] - 2023-01-17
 
