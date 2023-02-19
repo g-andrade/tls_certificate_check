@@ -373,7 +373,7 @@ maybe_load_authorities_trusted_by_otp(true = _UseOtpTrustedCAs,
                                             <- CombinedAuthoritativeCertificateValues],
             {ok, AuthoritativeCertificateValues, _Source = otp}
     catch
-        Class:Reason when Class =/= error, Reason =/= undef ->
+        Class:Reason when Class =/= error; Reason =/= undef ->
             ?LOG_WARNING("Failed to load OTP-trusted CAs: ~p:~p"
                          ", falling back to hardcoded authorities", [Class, Reason]),
             process_authorities(UnprocessedAuthorities, UnprocessedAuthoritiesSource)
