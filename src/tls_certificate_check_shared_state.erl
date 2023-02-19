@@ -534,6 +534,7 @@ compare_certificate_timestamps_([], []) ->
 -ifndef(NO_PUBLIC_KEY_CACERTS_GET).
 
 missing_otp_provided_CAs_falls_back_gracefully_test() ->
+    _ = application:stop(tls_certificate_check),
     {ok, _} = application:ensure_all_started(meck),
     {ok, _} = application:ensure_all_started(public_key),
 
