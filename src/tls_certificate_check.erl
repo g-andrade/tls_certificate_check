@@ -86,13 +86,17 @@ options(Target) ->
             CertificateVerificationFun = {fun ssl_verify_hostname:verify_fun/3,
                                           CertificateVerificationFunOptions},
 
-            HostnameCheckOptions = hostname_check_opts(),
+            % Required for OTP 23 as it fixed TLS hostname validation.
+            % See: https://bugs.erlang.org/browse/ERL-1232
+            Protocol = https,
+            HostnameMatchFun = public_key:pkix_verify_hostname_match_fun(Protocol),
+
             [{verify, verify_peer},
              {depth, ?DEFAULT_MAX_CERTIFICATE_CHAIN_DEPTH},
              {cacerts, CAs},
              {verify_fun, CertificateVerificationFun},
-             {partial_chain, fun tls_certificate_check_shared_state:find_trusted_authority/1}
-             | HostnameCheckOptions]
+             {partial_chain, fun tls_certificate_check_shared_state:find_trusted_authority/1},
+             {customize_hostname_check, [{match_fun, HostnameMatchFun}]}]
     catch
         http_target ->
             []
@@ -129,13 +133,6 @@ target_to_hostname(Target) ->
         _ ->
             binary_to_list(BinaryTarget)
     end.
-
-hostname_check_opts() ->
-    % Required for OTP 23 as they fixed TLS hostname validation.
-    % See: https://bugs.erlang.org/browse/ERL-1232
-    Protocol = https,
-    MatchFun = public_key:pkix_verify_hostname_match_fun(Protocol),
-    [{customize_hostname_check, [{match_fun, MatchFun}]}].
 
 -spec try_overriding_trusted_authorities(From) -> ok | {error, Reason}
       when From :: override_source(),
