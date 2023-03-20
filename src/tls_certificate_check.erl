@@ -43,7 +43,7 @@
 %% ------------------------------------------------------------------
 
 % Same as OpenSSL.
-% See: https://www.openssl.org/docs/man1.1.0/man3/SSL_CTX_set_verify_depth.html
+% See: https://www.openssl.org/docs/man1.1.1/man3/SSL_CTX_set_verify_depth.html
 -define(DEFAULT_MAX_CERTIFICATE_CHAIN_DEPTH, 100).
 
 %% ------------------------------------------------------------------
