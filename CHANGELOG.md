@@ -5,6 +5,14 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+### Added
+
+- explicit SNI, to account for TCP sockets upgraded to `ssl`
+with `ssl:connect/3`
+- OTP 25.3 to CI
+
 ## [1.17.4] - 2023-02-19
 
 ### Fixed

@@ -29,6 +29,12 @@
 
 -define(PEMS_PATH, "../../../../test/common_scenarios").
 
+-ifdef(MISMATCHED_SNI_DOESNT_CLOSE_CONN).
+-define(MISMATCHED_SNI_ERROR_REASON_PATTERN, {tls_alert, {handshake_failure, _}}).
+-else.
+-define(MISMATCHED_SNI_ERROR_REASON_PATTERN, closed).
+-endif.
+
 %% ------------------------------------------------------------------
 %% Setup
 %% ------------------------------------------------------------------
@@ -36,6 +42,7 @@
 all() ->
     [real_certificate_test,
      good_certificate_test,
+     sni_test,
      expired_certificate_test,
      future_certificate_test,
      wrong_host_certificate_test,
@@ -59,7 +66,7 @@ real_certificate_test(_Config) ->
     try
         URLs = shuffle_list(["https://example.com",
                              "https://www.google.com",
-                             "https://microsoft.com"]),
+                             "https://www.meta.com"]),
         real_certificate_test_recur(URLs)
     after
         application:stop(inets)
@@ -72,6 +79,48 @@ good_certificate_test(_Config) ->
       fun ({ok, Socket}) ->
               ssl:close(Socket)
       end).
+
+sni_test(_Config) ->
+    Certs = {multiple, #{
+        "localhost" => "good_certificate.pem",
+        "localhost2" => "good_certificate_for_localhost2.pem"
+    }},
+    Keys = {multiple, #{
+        "localhost" => "localhost_key.pem",
+        "localhost2" => "localhost2_key.pem"
+    }},
+
+    % Good hostname A
+    %
+    tls_certificate_check_test_utils:connect(
+      ?PEMS_PATH, "foobar.pem",
+      leaf, Certs,
+      fun ({ok, Socket}) ->
+              ssl:close(Socket)
+      end,
+      [{key, Keys}]),
+
+    % Good hostname B
+    %
+    tls_certificate_check_test_utils:connect(
+      ?PEMS_PATH, "foobar.pem",
+      leaf, Certs,
+      fun ({ok, Socket}) ->
+              ssl:close(Socket)
+      end,
+      [{key, Keys},
+       {hostname, {"localhost2", {127, 0, 0, 1}}}]),
+
+    % Bad hostname
+    %
+    tls_certificate_check_test_utils:connect(
+      ?PEMS_PATH, "foobar.pem",
+      leaf, Certs,
+      fun ({error, ?MISMATCHED_SNI_ERROR_REASON_PATTERN}) ->
+              ok
+      end,
+      [{key, Keys},
+       {hostname, {"localhost3", {127, 0, 0, 1}}}]).
 
 expired_certificate_test(_Config) ->
     tls_certificate_check_test_utils:connect(

@@ -30,8 +30,8 @@
 %% ------------------------------------------------------------------
 
 -export([options/1,
-    trusted_authorities/0,
-    override_trusted_authorities/1]).
+         trusted_authorities/0,
+         override_trusted_authorities/1]).
 
 -ignore_xref(
         [options/1,
@@ -43,7 +43,7 @@
 %% ------------------------------------------------------------------
 
 % Same as OpenSSL.
-% See: https://www.openssl.org/docs/man1.1.0/man3/SSL_CTX_set_verify_depth.html
+% See: https://www.openssl.org/docs/man1.1.1/man3/SSL_CTX_set_verify_depth.html
 -define(DEFAULT_MAX_CERTIFICATE_CHAIN_DEPTH, 100).
 
 %% ------------------------------------------------------------------
@@ -86,13 +86,18 @@ options(Target) ->
             CertificateVerificationFun = {fun ssl_verify_hostname:verify_fun/3,
                                           CertificateVerificationFunOptions},
 
-            HostnameCheckOptions = hostname_check_opts(),
+            % Required for OTP 23 as it fixed TLS hostname validation.
+            % See: https://bugs.erlang.org/browse/ERL-1232
+            Protocol = https,
+            HostnameMatchFun = public_key:pkix_verify_hostname_match_fun(Protocol),
+
             [{verify, verify_peer},
              {depth, ?DEFAULT_MAX_CERTIFICATE_CHAIN_DEPTH},
              {cacerts, CAs},
              {verify_fun, CertificateVerificationFun},
-             {partial_chain, fun tls_certificate_check_shared_state:find_trusted_authority/1}
-             | HostnameCheckOptions]
+             {partial_chain, fun tls_certificate_check_shared_state:find_trusted_authority/1},
+             {customize_hostname_check, [{match_fun, HostnameMatchFun}]}
+             | maybe_sni_opts(Hostname)]
     catch
         http_target ->
             []
@@ -130,13 +135,6 @@ target_to_hostname(Target) ->
             binary_to_list(BinaryTarget)
     end.
 
-hostname_check_opts() ->
-    % Required for OTP 23 as they fixed TLS hostname validation.
-    % See: https://bugs.erlang.org/browse/ERL-1232
-    Protocol = https,
-    MatchFun = public_key:pkix_verify_hostname_match_fun(Protocol),
-    [{customize_hostname_check, [{match_fun, MatchFun}]}].
-
 -spec try_overriding_trusted_authorities(From) -> ok | {error, Reason}
       when From :: override_source(),
            Reason :: term().
@@ -165,6 +163,17 @@ try_overriding_trusted_authorities(Source, UnprocessedAuthorities) ->
             Other
     end.
 
+maybe_sni_opts(Hostname) ->
+    case inet:parse_address(Hostname) of
+        {ok, _IpAddress} ->
+            % "Literal IPv4 and IPv6 addresses are not permitted in HostName"
+            % * https://www.ietf.org/rfc/rfc4366.html#section-3.1
+            [];
+        {error, einval} ->
+            % This probably doesn't cover IDNs...
+            [{server_name_indication, Hostname}]
+    end.
+
 %% ------------------------------------------------------------------
 %% Unit Test Definitions
 %% ------------------------------------------------------------------
@@ -191,5 +200,25 @@ https_and_generic_tls_targets_equivalence_test() ->
        ?MODULE:options("example.com"),
        ?MODULE:options("https://example.com/")
       ).
+
+sni_restrictions_test() ->
+    % Ip addresses have no SNI
+    ?assertEqual(
+        false,
+        lists:keyfind(server_name_indication, 1,
+                      ?MODULE:options("93.184.216.34"))
+    ),
+    ?assertEqual(
+        false,
+        lists:keyfind(server_name_indication, 1,
+                      ?MODULE:options("2606:2800:220:1:248:1893:25c8:1946"))
+    ),
+
+    % Regular hostnames do
+    ?assertMatch(
+        {server_name_indication, _},
+        lists:keyfind(server_name_indication, 1,
+                      ?MODULE:options("example.com"))
+    ).
 
 -endif. % -ifdef(TEST).
