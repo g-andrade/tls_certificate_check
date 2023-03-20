@@ -96,6 +96,7 @@ options(Target) ->
              {cacerts, CAs},
              {verify_fun, CertificateVerificationFun},
              {partial_chain, fun tls_certificate_check_shared_state:find_trusted_authority/1},
+             {server_name_indication, Hostname},
              {customize_hostname_check, [{match_fun, HostnameMatchFun}]}]
     catch
         http_target ->

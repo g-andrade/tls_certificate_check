@@ -1,5 +1,6 @@
 
 all: leaf_certificates/good_certificate.pem
+all: leaf_certificates/good_certificate_for_localhost2.pem
 all: leaf_certificates/expired_certificate.pem
 all: leaf_certificates/future_certificate.pem
 all: leaf_certificates/wrong.host.pem
@@ -25,6 +26,18 @@ leaf_certificates/good_certificate.pem: leaf_certificates/localhost.csr
 	faketime -f '-5y' openssl x509 \
 		-req \
 		-in leaf_certificates/localhost.csr \
+		-CA CAs/foobar_ca.pem \
+		-CAkey CAs/foobar_ca_key.pem \
+		-CAcreateserial \
+		-out $@ \
+		-days 20075 \
+		-sha256
+
+leaf_certificates/good_certificate_for_localhost2.pem: CAs/foobar_ca.pem
+leaf_certificates/good_certificate_for_localhost2.pem: leaf_certificates/localhost2.csr
+	faketime -f '-5y' openssl x509 \
+		-req \
+		-in leaf_certificates/localhost2.csr \
 		-CA CAs/foobar_ca.pem \
 		-CAkey CAs/foobar_ca_key.pem \
 		-CAcreateserial \
