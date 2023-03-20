@@ -30,8 +30,8 @@
 %% ------------------------------------------------------------------
 
 -export([options/1,
-    trusted_authorities/0,
-    override_trusted_authorities/1]).
+         trusted_authorities/0,
+         override_trusted_authorities/1]).
 
 -ignore_xref(
         [options/1,
