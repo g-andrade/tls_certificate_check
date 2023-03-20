@@ -13,6 +13,10 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 with `ssl:connect/3`
 - OTP 25.3 to CI
 
+### Fixed
+
+- CI deprecation warnings
+
 ## [1.17.4] - 2023-02-19
 
 ### Fixed
