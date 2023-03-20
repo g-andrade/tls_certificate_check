@@ -29,6 +29,12 @@
 
 -define(PEMS_PATH, "../../../../test/common_scenarios").
 
+-ifdef(MISMATCHED_SNI_DOESNT_CLOSE_CONN).
+-define(MISMATCHED_SNI_ERROR_REASON_PATTERN, {tls_alert, {handshake_failure, _}}).
+-else.
+-define(MISMATCHED_SNI_ERROR_REASON_PATTERN, closed).
+-endif.
+
 %% ------------------------------------------------------------------
 %% Setup
 %% ------------------------------------------------------------------
@@ -110,7 +116,7 @@ sni_test(_Config) ->
     tls_certificate_check_test_utils:connect(
       ?PEMS_PATH, "foobar.pem",
       leaf, Certs,
-      fun ({error, closed}) ->
+      fun ({error, ?MISMATCHED_SNI_ERROR_REASON_PATTERN}) ->
               ok
       end,
       [{key, Keys},
