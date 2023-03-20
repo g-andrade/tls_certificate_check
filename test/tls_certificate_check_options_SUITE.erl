@@ -60,7 +60,7 @@ real_certificate_test(_Config) ->
     try
         URLs = shuffle_list(["https://example.com",
                              "https://www.google.com",
-                             "https://microsoft.com"]),
+                             "https://www.meta.com"]),
         real_certificate_test_recur(URLs)
     after
         application:stop(inets)
