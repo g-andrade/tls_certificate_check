@@ -93,7 +93,7 @@ jobs:
       - name: "Windows: set dynamic env (2)"
         if: ${{runner.os == 'Windows'}}
         run: |
-          echo "build_cache_prefix_with_hash=${{env.build_cache_prefix}}-hash-${{hashFiles('rebar.lock')}}" >> "$GITHUB_ENV" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
+          echo "build_cache_prefix_with_hash=${{env.build_cache_prefix}}-hash-${{hashFiles('rebar.lock')}}" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
 
       - name: restore cached build artifacts
         uses: actions/cache/restore@v3
