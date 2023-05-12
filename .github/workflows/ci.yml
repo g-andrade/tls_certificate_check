@@ -73,13 +73,13 @@ jobs:
           GITHUB_TOKEN: ${{ github.token }}
 
       - name: Non-Windows: set dynamic env (1)
-        if: ! startsWith(${{runner.os}}, 'windows-')
+        if: ${{startsWith(${{runner.os}}, 'windows-') == 'false'}}
         run: |
           echo "prev_github_run_number=$((${{github.run_number}} - 1))" >> "$GITHUB_ENV"
           echo "build_cache_prefix=_build-cache-for-os-${{runner.os}}-otp-${{matrix.otp_vsn}}-rebar3-${{matrix.rebar3_vsn}}" >> "$GITHUB_ENV"
 
       - name: Non-Windows: set dynamic env (2)
-        if: ! startsWith(${{runner.os}}, 'windows-')
+        if: ${{startsWith(${{runner.os}}, 'windows-') == 'false'}}
         run: |
           echo "build_cache_prefix_with_hash=${{env.build_cache_prefix}}-hash-${{hashFiles('rebar.lock')}}" >> "$GITHUB_ENV"
 
