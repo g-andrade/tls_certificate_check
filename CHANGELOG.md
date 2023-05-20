@@ -5,6 +5,16 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+### Added
+
+- OTP 26.0 to CI (Linux only)
+
+### Changed
+
+- CI to use latest rebar3 version that's compatible with each covered OTP release
+
 ## [1.18.1] - 2023-05-01
 
 ### Changed
