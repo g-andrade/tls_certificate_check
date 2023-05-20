@@ -83,6 +83,7 @@ jobs:
         run: make test
 
       - name: Save build artifacts to cache
+        if: always()
         uses: actions/cache/save@v3
         with:
           path: _build
