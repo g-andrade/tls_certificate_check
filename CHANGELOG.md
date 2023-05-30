@@ -10,10 +10,19 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ### Added
 
 - OTP 26.0 to CI
+- [certificate authority] BJCA Global Root CA2
+- [certificate authority] BJCA Global Root CA1
 
 ### Changed
 
 - CI to use latest rebar3 version that's compatible with each covered OTP release
+- module with bundled CAs to latest as of 2023/05/30, 03:12 UTC
+(source: https://curl.se/ca/cacert.pem)
+
+### Removed
+
+- [certificate authority] hongkong post root ca 1
+- [certificate authority] E-Tugra Certification Authority
 
 ## [1.18.1] - 2023-05-01
 
