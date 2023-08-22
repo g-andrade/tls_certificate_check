@@ -5,6 +5,27 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+### Added
+
+- [certificate authority] Atos TrustedRoot Root CA ECC TLS 2021
+- [certificate authority] SSL.com TLS ECC Root CA 2022
+- [certificate authority] sectigo public server authentication root e46
+- [certificate authority] Atos TrustedRoot Root CA RSA TLS 2021
+- [certificate authority] SSL.com TLS RSA Root CA 2022
+- [certificate authority] sectigo public server authentication root r46
+
+### Changed
+
+- module with bundled CAs to latest as of 2023/08/22, 03:12 UTC
+(source: https://curl.se/ca/cacert.pem)
+
+### Removed
+
+- [certificate authority] e-tugra global root ca ecc v3
+- [certificate authority] e-tugra global root ca rsa v3
+
 ## [1.19.0] - 2023-05-30
 
 ### Added
