@@ -10,10 +10,10 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ### Added
 
 - [certificate authority] Atos TrustedRoot Root CA ECC TLS 2021
-- [certificate authority] SSL.com TLS ECC Root CA 2022
-- [certificate authority] sectigo public server authentication root e46
 - [certificate authority] Atos TrustedRoot Root CA RSA TLS 2021
+- [certificate authority] SSL.com TLS ECC Root CA 2022
 - [certificate authority] SSL.com TLS RSA Root CA 2022
+- [certificate authority] sectigo public server authentication root e46
 - [certificate authority] sectigo public server authentication root r46
 
 ### Changed
