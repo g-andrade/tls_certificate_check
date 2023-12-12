@@ -10,6 +10,22 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ### Added
 
 - OTP 26.1 to CI
+- [certificate authority] CommScope Public Trust ECC Root-02
+- [certificate authority] CommScope Public Trust ECC Root-01
+- [certificate authority] TrustAsia Global Root CA G4
+- [certificate authority] CommScope Public Trust RSA Root-01
+- [certificate authority] CommScope Public Trust RSA Root-02
+- [certificate authority] TrustAsia Global Root CA G3
+
+### Changed
+
+- module with bundled CAs to latest as of 2023/12/12, 04:12 UTC
+(source: https://curl.se/ca/cacert.pem)
+
+### Removed
+
+- [certificate authority] security communication rootca1
+- [certificate authority] Autoridad de Certificacion Firmaprofesional CIF A62634068
 
 ## [1.20.0] - 2023-08-22
 
