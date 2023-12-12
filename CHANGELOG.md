@@ -5,17 +5,17 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
-## [Unreleased]
+## [1.21.0] - 2023-12-12
 
 ### Added
 
-- OTP 26.1 to CI
-- [certificate authority] CommScope Public Trust ECC Root-02
 - [certificate authority] CommScope Public Trust ECC Root-01
-- [certificate authority] TrustAsia Global Root CA G4
+- [certificate authority] CommScope Public Trust ECC Root-02
 - [certificate authority] CommScope Public Trust RSA Root-01
 - [certificate authority] CommScope Public Trust RSA Root-02
 - [certificate authority] TrustAsia Global Root CA G3
+- [certificate authority] TrustAsia Global Root CA G4
+- OTP 26.1 to CI
 
 ### Changed
 
@@ -24,8 +24,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ### Removed
 
-- [certificate authority] security communication rootca1
 - [certificate authority] Autoridad de Certificacion Firmaprofesional CIF A62634068
+- [certificate authority] security communication rootca1
 
 ## [1.20.0] - 2023-08-22
 
