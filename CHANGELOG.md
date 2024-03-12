@@ -10,6 +10,13 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ### Added
 
 - OTP 26.2 to CI
+- [certificate authority] Telekom Security TLS ECC Root 2020
+- [certificate authority] Telekom Security TLS RSA Root 2023
+
+### Changed
+
+- module with bundled CAs to latest as of 2024/03/11, 15:25 UTC
+(source: https://curl.se/ca/cacert.pem)
 
 ## [1.21.0] - 2023-12-12
 
