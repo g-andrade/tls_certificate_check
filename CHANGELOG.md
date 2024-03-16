@@ -18,6 +18,11 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - module with bundled CAs to latest as of 2024/03/11, 15:25 UTC
 (source: https://curl.se/ca/cacert.pem)
 
+### Fixed
+
+- Elixir example of how to use `tls_certificate_check` with `ssl:connect/4`
+(thanks https://github.com/macifell)
+
 ## [1.21.0] - 2023-12-12
 
 ### Added

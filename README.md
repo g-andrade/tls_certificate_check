@@ -81,7 +81,7 @@ mix.exs
 ``` elixir
 host = "example.com"
 options = :tls_certificate_check.options(host)
-:ssl.connect(host, 443, options, 5000)
+host |> String.to_charlist() |> :ssl.connect(443, options, 5000)
 ```
 
 ### Advanced Usage
