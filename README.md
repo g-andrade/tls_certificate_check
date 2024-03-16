@@ -1,8 +1,12 @@
 # tls\_certificate\_check
 
-[![](https://img.shields.io/hexpm/v/tls_certificate_check.svg?style=flat)](https://hex.pm/packages/tls_certificate_check)
-[![](https://github.com/g-andrade/tls_certificate_check/actions/workflows/ci.yml/badge.svg)](https://github.com/g-andrade/tls_certificate_check/actions/workflows/ci.yml)
-[![Erlang Versions](https://img.shields.io/badge/Supported%20Erlang%2FOTP-22%20to%2026-blue)](https://www.erlang.org)
+[![Hex downloads](https://img.shields.io/hexpm/dt/tls_certificate_check.svg)](https://hex.pm/packages/tls_certificate_check)
+[![License](https://img.shields.io/hexpm/l/tls_certificate_check.svg)](https://github.com/g-andrade/tls_certificate_check/blob/main/LICENSE)
+[![Erlang Versions](https://img.shields.io/badge/Erlang%2FOTP-21.3%20to%2026-blue)](https://www.erlang.org)
+[![CI status](https://github.com/g-andrade/tls_certificate_check/actions/workflows/ci.yml/badge.svg)](https://github.com/g-andrade/tls_certificate_check/actions/workflows/ci.yml)
+[![Latest version](https://img.shields.io/hexpm/v/tls_certificate_check.svg?style=flat)](https://hex.pm/packages/tls_certificate_check)
+[![API reference](https://img.shields.io/badge/hex-docs-lightgreen.svg)](https://hexdocs.pm/tls_certificate_check/)
+[![Last commit](https://img.shields.io/github/last-commit/g-andrade/tls_certificate_check.svg)](https://github.com/g-andrade/tls_certificate_check/commits/main)
 
 `tls_certificate_check` is a library for Erlang/OTP and Elixir that
 tries to make it easier to establish [more secure HTTPS
@@ -29,7 +33,9 @@ starts and made available to the API through
 [`persistent_term`](https://erlang.org/doc/man/persistent_term.html)[^2]. After that, they can
 be explicitly overridden through the API.
 
-### Usage - Erlang
+### How to use
+
+#### Erlang
 
 ##### 1\. Import as a dependency
 
@@ -61,7 +67,7 @@ Options = tls_certificate_check:options(Host),
 ssl:connect(Host, 443, Options, 5000)
 ```
 
-### Usage - Elixir
+#### Elixir
 
 ##### 1\. Import as a dependency
 
@@ -84,7 +90,7 @@ options = :tls_certificate_check.options(host)
 host |> String.to_charlist() |> :ssl.connect(443, options, 5000)
 ```
 
-### Advanced Usage
+### Advanced Use
 
 #### Overriding Trusted CAs
 
