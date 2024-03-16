@@ -1,12 +1,12 @@
 # tls\_certificate\_check
 
 [![Hex downloads](https://img.shields.io/hexpm/dt/tls_certificate_check.svg)](https://hex.pm/packages/tls_certificate_check)
-[![License](https://img.shields.io/hexpm/l/tls_certificate_check.svg)](https://github.com/g-andrade/tls_certificate_check/blob/main/LICENSE)
+[![License](https://img.shields.io/hexpm/l/tls_certificate_check.svg)](https://github.com/g-andrade/tls_certificate_check/blob/master/LICENSE)
 [![Erlang Versions](https://img.shields.io/badge/Erlang%2FOTP-21.3%20to%2026-blue)](https://www.erlang.org)
 [![CI status](https://github.com/g-andrade/tls_certificate_check/actions/workflows/ci.yml/badge.svg)](https://github.com/g-andrade/tls_certificate_check/actions/workflows/ci.yml)
 [![Latest version](https://img.shields.io/hexpm/v/tls_certificate_check.svg?style=flat)](https://hex.pm/packages/tls_certificate_check)
 [![API reference](https://img.shields.io/badge/hex-docs-lightgreen.svg)](https://hexdocs.pm/tls_certificate_check/)
-[![Last commit](https://img.shields.io/github/last-commit/g-andrade/tls_certificate_check.svg)](https://github.com/g-andrade/tls_certificate_check/commits/main)
+[![Last commit](https://img.shields.io/github/last-commit/g-andrade/tls_certificate_check.svg)](https://github.com/g-andrade/tls_certificate_check/commits/master)
 
 `tls_certificate_check` is a library for Erlang/OTP and Elixir that
 tries to make it easier to establish [more secure HTTPS
