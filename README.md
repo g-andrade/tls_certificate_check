@@ -2,7 +2,7 @@
 
 [![Hex downloads](https://img.shields.io/hexpm/dt/tls_certificate_check.svg)](https://hex.pm/packages/tls_certificate_check)
 [![License](https://img.shields.io/hexpm/l/tls_certificate_check.svg)](https://github.com/g-andrade/tls_certificate_check/blob/master/LICENSE)
-[![Erlang Versions](https://img.shields.io/badge/Erlang%2FOTP-21.3%20to%2026-blue)](https://www.erlang.org)
+[![Erlang Versions](https://img.shields.io/badge/Erlang%2FOTP-21.3%20to%2027-blue)](https://www.erlang.org)
 [![CI status](https://github.com/g-andrade/tls_certificate_check/actions/workflows/ci.yml/badge.svg)](https://github.com/g-andrade/tls_certificate_check/actions/workflows/ci.yml)
 [![Latest version](https://img.shields.io/hexpm/v/tls_certificate_check.svg?style=flat)](https://hex.pm/packages/tls_certificate_check)
 [![API reference](https://img.shields.io/badge/hex-docs-lightgreen.svg)](https://hexdocs.pm/tls_certificate_check/)
