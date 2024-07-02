@@ -10,6 +10,16 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ### Added
 
 - OTP 27.0 to CI
+- [certificate authority] FIRMAPROFESIONAL CA ROOT-A WEB
+
+### Changed
+
+- module with bundled CAs to latest as of 2024/07/02, 03:12 UTC
+(source: https://curl.se/ca/cacert.pem)
+
+### Removed
+
+- [certificate authority] globaltrust 2020
 
 ## [1.22.1] - 2024-03-16
 
