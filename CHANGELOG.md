@@ -5,12 +5,12 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
-## [Unreleased]
+## [1.23.0] - 2024-07-09
 
 ### Added
 
-- OTP 27.0 to CI
 - [certificate authority] FIRMAPROFESIONAL CA ROOT-A WEB
+- OTP 27.0 to CI
 
 ### Changed
 
