@@ -11,6 +11,14 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 - OTP 27.1 to CI
 
+### Fixed
+
+- problematic lack of unix permissions for 'other' among some of the source
+  files, affecting environments that preserve said permissions and import,
+  process or in other ways depend on `tls_certificate_check` under a different
+  user account & group from those that own the file (thanks
+  https://github.com/kivra-pauoli)
+
 ## [1.24.0] - 2024-09-24
 
 ### Added
