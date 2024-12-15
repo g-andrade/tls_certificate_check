@@ -10,6 +10,12 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ### Added
 
 - OTP 27.1 to CI
+- [certificate authority] globaltrust 2020
+
+### Changed
+
+- module with bundled CAs to latest as of 2024/11/26, 13:58 UTC
+(source: https://curl.se/ca/cacert.pem)
 
 ### Fixed
 

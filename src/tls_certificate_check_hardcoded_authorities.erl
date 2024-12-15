@@ -26,7 +26,7 @@
 %% Automatically generated; do not edit.
 %%
 %% Source: https://curl.se/ca/cacert.pem
-%% Date: 2024/09/24, 03:12 UTC
+%% Date: 2024/11/26, 13:58 UTC
 
 %% ------------------------------------------------------------------
 %% API Function Exports
@@ -73,7 +73,7 @@ encoded_list_() ->
     <<"##\n",
       "## Bundle of CA Root Certificates\n",
       "##\n",
-      "## Certificate data from Mozilla as of: Tue Sep 24 03:12:04 2024 GMT\n",
+      "## Certificate data from Mozilla as of: Tue Nov 26 13:58:25 2024 GMT\n",
       "##\n",
       "## Find updated versions here: https://curl.se/docs/caextract.html\n",
       "##\n",
@@ -2674,6 +2674,36 @@ encoded_list_() ->
       "gLWi5h+xEk8blTAKBggqhkjOPQQDAwNoADBlAjEA31SQ7Zvvi5QCkxeCmb6zniz2C5GMn0oUsfZk\n",
       "vLtoURMMA/cVi4RguYv/Uo7njLwcAjA8+RHUjE7AwWHCFUyqqx0LMV87HOIAl0Qx5v5zli/altP+\n",
       "CAezNIm8BZ/3Hobui3A=\n",
+      "-----END CERTIFICATE-----\n",
+      "\n",
+      "GLOBALTRUST 2020\n",
+      "================\n",
+      "-----BEGIN CERTIFICATE-----\n",
+      "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\n",
       "-----END CERTIFICATE-----\n",
       "\n",
       "ANF Secure Server Root CA\n",
