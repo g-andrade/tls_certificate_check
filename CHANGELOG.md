@@ -5,7 +5,7 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
-## [Unreleased]
+## [1.25.0] - 2024-12-15
 
 ### Added
 
@@ -23,7 +23,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
   files, affecting environments that preserve said permissions and import,
   process or in other ways depend on `tls_certificate_check` under a different
   user account & group from those that own the file (thanks
-  https://github.com/kivra-pauoli)
+  https://github.com/kivra-pauoli, closes issue #52)
 
 ## [1.24.0] - 2024-09-24
 
