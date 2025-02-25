@@ -5,6 +5,22 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+### Added
+
+- [certificate authority] d-trust ev root ca 2 2023
+- [certificate authority] d-trust br root ca 2 2023
+
+### Changed
+
+- module with bundled CAs to latest as of 2025/02/25, 04:12 UTC
+(source: https://curl.se/ca/cacert.pem)
+
+### Removed
+
+- [certificate authority] swisssign silver ca - g2
+
 ## [1.26.0] - 2025-01-09
 
 ### Changed
