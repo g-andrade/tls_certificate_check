@@ -17,8 +17,8 @@ jobs:
       - uses: erlef/setup-elixir@v1
         with:
           ref: 'master'
-          otp-version: 24.0
-          rebar3-version: 3.18
+          otp-version: 27.2
+          rebar3-version: 3.24
       - run: |
           .github/workflows/hardcoded-authorities-updater.sh
         env:
