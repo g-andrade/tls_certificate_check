@@ -5,24 +5,24 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
-## [Unreleased]
+## [1.28.0] - 2025-05-23
 
 ### Changed
 
-- CI from Ubuntu 20.04 to 22.04
-- oldest OTP version supported from 22 to 24
 - module with bundled CAs to latest as of 2025/05/20, 03:12 UTC
 (source: https://curl.se/ca/cacert.pem)
+- oldest OTP version supported from 22 to 24
+- CI from Ubuntu 20.04 to 22.04
 
 ### Removed
 
-- [certificate authority] globalsign root ca
+- [certificate authority] AAA Certificate Services
 - [certificate authority] baltimore cybertrust root
+- [certificate authority] entrust.net certification authority (2048)
+- [certificate authority] globalsign root ca
 - [certificate authority] go daddy class 2 certification authority
 - [certificate authority] starfield class 2 certification authority
-- [certificate authority] entrust.net certification authority (2048)
 - [certificate authority] xramp global certification authority
-- [certificate authority] AAA Certificate Services
 
 ## [1.27.0] - 2025-02-25
 
