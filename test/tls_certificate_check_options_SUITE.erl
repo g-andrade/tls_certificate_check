@@ -29,10 +29,14 @@
 
 -define(PEMS_PATH, "../../../../test/common_scenarios").
 
--ifdef(MISMATCHED_SNI_DOESNT_CLOSE_CONN).
+-ifdef(MISMATCHED_SNI_FAILS_HANDSHAKE).
 -define(MISMATCHED_SNI_ERROR_REASON_PATTERN, {tls_alert, {handshake_failure, _}}).
 -else.
+-ifdef(MISMATCHED_SNI_CLOSES_CONN).
 -define(MISMATCHED_SNI_ERROR_REASON_PATTERN, closed).
+-else.
+-define(MISMATCHED_SNI_ERROR_REASON_PATTERN, {tls_alert, {illegal_parameter, _}}).
+-endif.
 -endif.
 
 %% ------------------------------------------------------------------
