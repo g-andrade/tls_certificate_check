@@ -26,7 +26,7 @@
 %% Automatically generated; do not edit.
 %%
 %% Source: https://curl.se/ca/cacert.pem
-%% Date: 2025/05/20, 03:12 UTC
+%% Date: 2025/07/15, 03:12 UTC
 
 %% ------------------------------------------------------------------
 %% API Function Exports
@@ -73,7 +73,7 @@ encoded_list_() ->
     <<"##\n",
       "## Bundle of CA Root Certificates\n",
       "##\n",
-      "## Certificate data from Mozilla as of: Tue May 20 03:12:02 2025 GMT\n",
+      "## Certificate data from Mozilla as of: Tue Jul 15 03:12:01 2025 GMT\n",
       "##\n",
       "## Find updated versions here: https://curl.se/docs/caextract.html\n",
       "##\n",
@@ -88,7 +88,7 @@ encoded_list_() ->
       "## Just configure this file as the SSLCACertificateFile.\n",
       "##\n",
       "## Conversion done with mk-ca-bundle.pl version 1.29.\n",
-      "## SHA256: 8944ec6b572b577daee4fc681a425881f841ec2660e4cb5f0eee727f84620697\n",
+      "## SHA256: 579f336ace2e5717b8ecc06002ce0cce96f70623d188e1999c34b0f77696d3e9\n",
       "##\n",
       "\n",
       "\n",
