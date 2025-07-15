@@ -12,6 +12,11 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - OTP 28.0 to CI
 - OTP 27.3 to CI
 
+### Changed
+
+- module with bundled CAs to latest as of 2025/07/15, 03:12 UTC
+(source: https://curl.se/ca/cacert.pem)
+
 ## [1.28.0] - 2025-05-23
 
 ### Changed
