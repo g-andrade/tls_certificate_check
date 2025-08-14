@@ -44,7 +44,7 @@ rebar.config
 ``` erlang
 {deps, [
     % [...]
-    {tls_certificate_check, "~> 1.28"}
+    {tls_certificate_check, "~> 1.29"}
 ]}.
 ```
 
@@ -77,7 +77,7 @@ mix.exs
   defp deps do
     [
       # [...]
-      {:tls_certificate_check, "~> 1.28"}
+      {:tls_certificate_check, "~> 1.29"}
     ]
   end
 ```
