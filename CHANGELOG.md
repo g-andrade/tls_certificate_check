@@ -11,10 +11,15 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 - OTP 28.0 to CI
 - OTP 27.3 to CI
+- [certificate authority] trustasia tls ecc root ca
+- [certificate authority] trustasia tls rsa root ca
+- [certificate authority] swisssign rsa tls root ca 2022 - 1
 
 ### Changed
 
 - module with bundled CAs to latest as of 2025/07/15, 03:12 UTC
+(source: https://curl.se/ca/cacert.pem)
+- module with bundled CAs to latest as of 2025/08/12, 03:12 UTC
 (source: https://curl.se/ca/cacert.pem)
 
 ## [1.28.0] - 2025-05-23
