@@ -30,11 +30,13 @@
 %% ------------------------------------------------------------------
 
 -export([options/1,
+         ensure_state_initialized/0,
          trusted_authorities/0,
          override_trusted_authorities/1]).
 
 -ignore_xref(
         [options/1,
+         ensure_state_initialized/0,
          trusted_authorities/0,
          override_trusted_authorities/1]).
 
@@ -102,6 +104,11 @@ options(Target) ->
         http_target ->
             []
     end.
+
+%% @doc Blocks until shared state is initialized.
+-spec ensure_state_initialized() -> ok | {error, timeout}.
+ensure_state_initialized() ->
+    tls_certificate_check_shared_state:ensure_initialized().
 
 %% @doc Returns the list of trusted authorities.
 -spec trusted_authorities() -> CAs

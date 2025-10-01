@@ -37,6 +37,7 @@
 
 -export([child_spec/0,
          start_link/0,
+         ensure_initialized/0,
          authoritative_certificate_values/0,
          find_trusted_authority/1,
          maybe_update_shared_state/2]).
@@ -134,6 +135,18 @@ child_spec() ->
 start_link() ->
     proc_lib:start_link(?MODULE, proc_lib_init, []).
 
+-spec ensure_initialized() -> ok | {error, timeout}.
+ensure_initialized() ->
+  until_true(
+    fun () ->
+      try gen_server:call(?SERVER, is_shared_state_initialized)
+      catch
+        exit:{noproc, {gen_server, call, [?SERVER | _]}} ->
+          false
+      end
+    end
+  ).
+
 -spec authoritative_certificate_values() -> [public_key:der_encoded(), ...] | no_return().
 authoritative_certificate_values() ->
     SharedState = get_latest_shared_state(),
@@ -213,6 +226,8 @@ init(_) ->
 handle_call({update_shared_state, Source, UnprocessedAuthorities}, _From, State)
   when State#state.shared_state_initialized ->
     handle_shared_state_update(Source, UnprocessedAuthorities, State);
+handle_call(is_shared_state_initialized, _From, State) ->
+  {reply, State#state.shared_state_initialized, State};
 handle_call(Request, From, State) ->
     ErrorDetails = #{request => Request, from => From},
     {stop, {unexpected_call, ErrorDetails}, State}.
@@ -526,6 +541,28 @@ compare_certificate_timestamps_([X|A], [Y|B]) ->
     end;
 compare_certificate_timestamps_([], []) ->
     equal.
+
+until_true(Fun) ->
+    Parent = self(),
+    spawn(
+        fun() ->
+            until_true(Fun, 5),
+            Parent ! {self(), ok}
+        end
+    ),
+    receive
+        {_ChildPid, ok} -> ok
+    after
+        500 -> {error, timeout}
+    end.
+
+until_true(Fun, Interval) ->
+    case apply(Fun, []) of
+        true -> ok;
+        false ->
+            timer:sleep(Interval),
+            until_true(Fun, Interval)
+    end.
 
 %% ------------------------------------------------------------------
 %% Unit Test Definitions
