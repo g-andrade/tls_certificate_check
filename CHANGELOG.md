@@ -9,11 +9,13 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ### Added
 
+- [certificate authority] OISTE Server Root ECC G1
+- [certificate authority] OISTE Server Root RSA G1
 - OTP 28.1 to CI
 
 ### Changed
 
-- module with bundled CAs to latest as of 2025/09/09, 03:12 UTC
+- module with bundled CAs to latest as of 2025/11/04, 04:12 UTC
 (source: https://curl.se/ca/cacert.pem)
 
 ## [1.29.0] - 2025-08-14
