@@ -506,7 +506,7 @@ latest_shared_state_key(MatchSpec, FailureBehaviour) ->
 
 -spec ensure_app_started() -> ok | no_return().
 ensure_app_started() ->
-    case application:ensure_all_started([?APP]) of
+    case application:ensure_all_started(?APP) of
         {ok, _} ->
             ok;
 
