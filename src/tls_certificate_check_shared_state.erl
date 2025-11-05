@@ -84,6 +84,7 @@
 %% Macro Definitions
 %% ------------------------------------------------------------------
 
+-define(APP, tls_certificate_check).
 -define(SERVER, ?MODULE).
 -define(INFO_TABLE, ?SERVER).
 -define(HIBERNATE_AFTER, (timer:seconds(10))).
@@ -213,6 +214,9 @@ init(_) ->
 handle_call({update_shared_state, Source, UnprocessedAuthorities}, _From, State)
   when State#state.shared_state_initialized ->
     handle_shared_state_update(Source, UnprocessedAuthorities, State);
+handle_call(await_initialization, _From, State)
+  when State#state.shared_state_initialized ->
+    {reply, ok, State};
 handle_call(Request, From, State) ->
     ErrorDetails = #{request => Request, from => From},
     {stop, {unexpected_call, ErrorDetails}, State}.
@@ -468,15 +472,46 @@ latest_shared_state_key() ->
                 {-Priority, Key}
         end),
 
+    latest_shared_state_key(MatchSpec, ensure_initialized).
+
+-spec latest_shared_state_key(ets:match_spec(), ensure_initialized | throw) -> term() | no_return().
+latest_shared_state_key(MatchSpec, FailureBehaviour) ->
+    % Regarding FailureBehaviour `ensure_initialized':
+    % * https://github.com/g-andrade/tls_certificate_check/issues/61
+    % * github.com/open-telemetry/opentelemetry-erlang/issues/419
+
     try ets:select(?INFO_TABLE, MatchSpec) of
+        [] when FailureBehaviour =:= ensure_initialized ->
+            % Workaround for when `tls_certificate_check' is an implicit
+            % dependency that's called before it finished initializing.
+            ok = gen_server:call(?SERVER, await_initialization),
+            latest_shared_state_key(MatchSpec, throw);
+
         [] ->
             throw({application_not_ready, tls_certificate_check});
+
         PrioritizedKeys ->
             [{_, HighestPriorityKey} | _] = lists:sort(PrioritizedKeys),
             HighestPriorityKey
     catch
-        error:badarg when is_atom(?INFO_TABLE) ->
+        error:badarg when FailureBehaviour =:= ensure_initialized ->
+            % Workaround for when `tls_certificate_check' is an implicit
+            % dependency that's called before it was even started.
+            ensure_app_started(),
+            latest_shared_state_key(MatchSpec, throw);
+
+        error:badarg ->
             throw({application_either_not_started_or_not_ready, tls_certificate_check})
+    end.
+
+-spec ensure_app_started() -> ok | no_return().
+ensure_app_started() ->
+    case application:ensure_all_started([?APP]) of
+        {ok, _} ->
+            ok;
+
+        {error, Reason} ->
+            throw({application_failed_to_start, {tls_certificate_check, Reason}})
     end.
 
 universal_time_in_certificate_format() ->

@@ -1,0 +1,8 @@
+{"1.2.0",
+[{<<"ssl_verify_fun">>,{pkg,<<"ssl_verify_fun">>,<<"1.1.7">>},0}]}.
+[
+{pkg_hash,[
+ {<<"ssl_verify_fun">>, <<"354C321CF377240C7B8716899E182CE4890C5938111A1296ADD3EC74CF1715DF">>}]},
+{pkg_hash_ext,[
+ {<<"ssl_verify_fun">>, <<"FE4C190E8F37401D30167C8C405EDA19469F34577987C76DDE613E838BBC67F8">>}]}
+].
