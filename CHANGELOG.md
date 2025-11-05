@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## [Unreleased]
 
+### Added
+
+- OTP 28.1 to CI
+
 ### Changed
 
 - module with bundled CAs to latest as of 2025/09/09, 03:12 UTC
