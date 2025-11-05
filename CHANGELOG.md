@@ -5,7 +5,7 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
-## [Unreleased]
+## [1.30.0] - 2025-11-05
 
 ### Added
 
@@ -20,7 +20,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ### Fixed
 
-- throwing of `application_either_not_started_or_not_ready' when this lib is
+- throwing of `application_either_not_started_or_not_ready` when this lib is
   used as an _implicit_ dependency (i.e. called before it has started or
   finished initializing)
 
