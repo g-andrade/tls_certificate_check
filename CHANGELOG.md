@@ -5,6 +5,20 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+### Changed
+
+- module with bundled CAs to latest as of 2025/12/02, 04:12 UTC
+(source: https://curl.se/ca/cacert.pem)
+
+### Removed
+
+- [certificate authority] CommScope Public Trust ECC Root-02
+- [certificate authority] CommScope Public Trust ECC Root-01
+- [certificate authority] CommScope Public Trust RSA Root-01
+- [certificate authority] CommScope Public Trust RSA Root-02
+
 ## [1.30.0] - 2025-11-05
 
 ### Added
