@@ -122,7 +122,7 @@ The API reference can be found on
 
 MIT License
 
-Copyright (c) 2020-2024 Guilherme Andrade
+Copyright (c) 2020-2026 Guilherme Andrade
 
 Permission is hereby granted, free of charge, to any person obtaining a
 copy of this software and associated documentation files (the
