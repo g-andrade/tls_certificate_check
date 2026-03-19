@@ -5,6 +5,17 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+### Added
+
+- [certificate authority] e-Szigno TLS Root CA 2023
+
+### Changed
+
+- module with bundled CAs to latest as of 2026/02/11, 18:26 UTC
+(source: https://curl.se/ca/cacert.pem)
+
 ## [1.31.0] - 2025-12-02
 
 ### Changed
