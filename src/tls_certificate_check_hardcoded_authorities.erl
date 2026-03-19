@@ -26,7 +26,7 @@
 %% Automatically generated; do not edit.
 %%
 %% Source: https://curl.se/ca/cacert.pem
-%% Date: 2025/12/02, 04:12 UTC
+%% Date: 2026/02/11, 18:26 UTC
 
 %% ------------------------------------------------------------------
 %% API Function Exports
@@ -73,7 +73,7 @@ encoded_list_() ->
     <<"##\n",
       "## Bundle of CA Root Certificates\n",
       "##\n",
-      "## Certificate data from Mozilla as of: Tue Dec  2 04:12:02 2025 GMT\n",
+      "## Certificate data from Mozilla last updated on: Wed Feb 11 18:26:30 2026 GMT\n",
       "##\n",
       "## Find updated versions here: https://curl.se/docs/caextract.html\n",
       "##\n",
@@ -87,8 +87,8 @@ encoded_list_() ->
       "## an Apache+mod_ssl webserver for SSL client authentication.\n",
       "## Just configure this file as the SSLCACertificateFile.\n",
       "##\n",
-      "## Conversion done with mk-ca-bundle.pl version 1.30.\n",
-      "## SHA256: a903b3cd05231e39332515ef7ebe37e697262f39515a52015c23c62805b73cd0\n",
+      "## Conversion done with mk-ca-bundle.pl version 1.32.\n",
+      "## SHA256: 3b98d4e3ff57a326d9587c33633039c8c3a9cf0b55f7ca581d7598ff329eb1f3\n",
       "##\n",
       "\n",
       "\n",
@@ -3554,8 +3554,8 @@ encoded_list_() ->
       "ZzFDJe0CMQCSia7pXGKDYmH5LVerVrkR3SW+ak5KGoJr3M/TvEqzPNcum9v4KGm8ay3sMaE641c=\n",
       "-----END CERTIFICATE-----\n",
       "\n",
-      " OISTE Server Root RSA G1\n",
-      "=========================\n",
+      "OISTE Server Root RSA G1\n",
+      "========================\n",
       "-----BEGIN CERTIFICATE-----\n",
       "MIIFgzCCA2ugAwIBAgIQVaXZZ5Qoxu0M+ifdWwFNGDANBgkqhkiG9w0BAQwFADBLMQswCQYDVQQG\n",
       "EwJDSDEZMBcGA1UECgwQT0lTVEUgRm91bmRhdGlvbjEhMB8GA1UEAwwYT0lTVEUgU2VydmVyIFJv\n",
@@ -3582,4 +3582,22 @@ encoded_list_() ->
       "msuY33OhkKCgxeDoAaijFJzIwZqsFVAzje18KotzlUBDJvyBpCpfOZC3J8tRd/iWkx7P8nd9H0aT\n",
       "olkelUTFLXVksNb54Dxp6gS1HAviRkRNQzuXSXERvSS2wq1yVAb+axj5d9spLFKebXd7Yv0PTY6Y\n",
       "MjAwcRLWJTXjn/hvnLXrahut6hDTlhZyBiElxky8j3C7DOReIoMt0r7+hVu05L0=\n",
+      "-----END CERTIFICATE-----\n",
+      "\n",
+      "e-Szigno TLS Root CA 2023\n",
+      "=========================\n",
+      "-----BEGIN CERTIFICATE-----\n",
+      "MIICzzCCAjGgAwIBAgINAOhvGHvWOWuYSkmYCjAKBggqhkjOPQQDBDB1MQswCQYDVQQGEwJIVTER\n",
+      "MA8GA1UEBwwIQnVkYXBlc3QxFjAUBgNVBAoMDU1pY3Jvc2VjIEx0ZC4xFzAVBgNVBGEMDlZBVEhV\n",
+      "LTIzNTg0NDk3MSIwIAYDVQQDDBllLVN6aWdubyBUTFMgUm9vdCBDQSAyMDIzMB4XDTIzMDcxNzE0\n",
+      "MDAwMFoXDTM4MDcxNzE0MDAwMFowdTELMAkGA1UEBhMCSFUxETAPBgNVBAcMCEJ1ZGFwZXN0MRYw\n",
+      "FAYDVQQKDA1NaWNyb3NlYyBMdGQuMRcwFQYDVQRhDA5WQVRIVS0yMzU4NDQ5NzEiMCAGA1UEAwwZ\n",
+      "ZS1Temlnbm8gVExTIFJvb3QgQ0EgMjAyMzCBmzAQBgcqhkjOPQIBBgUrgQQAIwOBhgAEAGgP36J8\n",
+      "PKp0iGEKjcJMpQEiFNT3YHdCnAo4YKGMZz6zY+n6kbCLS+Y53wLCMAFSAL/fjO1ZrTJlqwlZULUZ\n",
+      "wmgcAOAFX9pQJhzDrAQixTpN7+lXWDajwRlTEArRzT/vSzUaQ49CE0y5LBqcvjC2xN7cS53kpDzL\n",
+      "Ltmt3999Cd8ukv+ho2MwYTAPBgNVHRMBAf8EBTADAQH/MA4GA1UdDwEB/wQEAwIBBjAdBgNVHQ4E\n",
+      "FgQUWYQCYlpGePVd3I8KECgj3NXW+0UwHwYDVR0jBBgwFoAUWYQCYlpGePVd3I8KECgj3NXW+0Uw\n",
+      "CgYIKoZIzj0EAwQDgYsAMIGHAkIBLdqu9S54tma4n7Zwf2Z0z+yOfP7AAXmazlIC58PRDHpty7Ve\n",
+      "7hekm9sEdu4pKeiv+62sUvTXK9Z3hBC9xdIoaDQCQTV2WnXzkoYI9bIeCvZlC9p2x1L/Cx6AcCIw\n",
+      "wzPbGO2E14vs7dOoY4G1VnxHx1YwlGhza9IuqbnZLBwpvQy6uWWL\n",
       "-----END CERTIFICATE-----\n">>.
