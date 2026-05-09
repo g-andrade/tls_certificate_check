@@ -19,7 +19,7 @@ test deps and require `mix` to be available; if not, they are silently skipped.
 
 ## Checking docs
 
-    make doc-dry
+    make doc
 
 Run this to verify that documentation builds cleanly. Do not break docs.
 
