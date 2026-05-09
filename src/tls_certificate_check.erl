@@ -18,8 +18,11 @@
 %% FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 %% DEALINGS IN THE SOFTWARE.
 
-%% @doc Main API
 -module(tls_certificate_check).
+
+-ifdef(E48).
+-moduledoc "Main API".
+-endif.
 
 -ifdef(TEST).
 -include_lib("eunit/include/eunit.hrl").
@@ -64,15 +67,15 @@
 %% API Function Definitions
 %% ------------------------------------------------------------------
 
-%% @doc Returns the list of `ssl:connect' options
-%% necessary to validate the server certificate against
-%% a list of trusted authorities, as well as to verify
-%% whether the server hostname matches one in the server
-%% certificate.
-%%
-%% <ul>
-%% <li>`Target' can be either a hostname or an HTTP URL, as `iodata()'</li>
-%% </ul>
+-ifdef(E48).
+-doc """
+Returns the list of `ssl:connect/3` options necessary to validate 
+the server certificate against a list of trusted authorities, as well as to verify 
+whether the server hostname matches one in the server certificate.
+
+- `Target` can be either a hostname or an HTTP URL, as `t:iodata/0`
+""".
+-endif.
 -spec options(Target) -> Options
         when Target :: Hostname | URL,
              Hostname :: iodata(),
@@ -103,13 +106,17 @@ options(Target) ->
             []
     end.
 
-%% @doc Returns the list of trusted authorities.
+-ifdef(E48).
+-doc "Returns the list of trusted authorities.".
+-endif.
 -spec trusted_authorities() -> CAs
       when CAs :: [public_key:der_encoded(), ...].
 trusted_authorities() ->
     tls_certificate_check_shared_state:authoritative_certificate_values().
 
-%% @doc Overrides the trusted authorities with a custom source.
+-ifdef(E48).
+-doc "Overrides the trusted authorities with a custom source.".
+-endif.
 -spec override_trusted_authorities(From) -> ok
       when From :: override_source().
 override_trusted_authorities(Source) ->
