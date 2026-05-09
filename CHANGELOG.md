@@ -9,7 +9,12 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ### Added
 
+- llms.txt
 - OTP 28.5 to CI
+
+### Changed
+
+- doc generation from `rebar3_ex_doc` to direct use of `ExDoc`
 
 ## [1.32.1] - 2026-04-06
 
