@@ -5,11 +5,15 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
-## [Unreleased]
+## [1.32.4] - 2026-05-09
 
 ### Removed
 
 - OTP 24 from supported versions
+
+### Fixed
+
+- CI
 
 ## [1.32.3] - 2026-05-09
 
