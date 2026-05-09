@@ -10,7 +10,7 @@ set -eux
 git config user.name "GitHub Actions"
 git config user.email "actions@users.noreply.github.com"
 
-BASE_BRANCH=master
+BASE_BRANCH=main
 git fetch origin
 git checkout "${BASE_BRANCH}"
 git reset --hard "origin/${BASE_BRANCH}"
