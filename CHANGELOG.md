@@ -5,6 +5,40 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+### Changed
+
+- module with bundled CAs to latest as of 2026/05/14, 03:12 UTC
+(source: https://curl.se/ca/cacert.pem)
+
+### Removed
+
+- [certificate authority] AffirmTrust Premium ECC
+- [certificate authority] trustwave global ecc p256 certification authority
+- [certificate authority] FIRMAPROFESIONAL CA ROOT-A WEB
+- [certificate authority] trustwave global ecc p384 certification authority
+- [certificate authority] entrust root certification authority - ec1
+- [certificate authority] certsign root ca
+- [certificate authority] AffirmTrust Commercial
+- [certificate authority] AffirmTrust Networking
+- [certificate authority] Certigna
+- [certificate authority] digicert global root ca
+- [certificate authority] digicert assured id root ca
+- [certificate authority] securetrust ca
+- [certificate authority] secure global ca
+- [certificate authority] digicert high assurance ev root ca
+- [certificate authority] comodo certification authority
+- [certificate authority] entrust root certification authority - g2
+- [certificate authority] TeliaSonera Root CA v1
+- [certificate authority] AffirmTrust Premium
+- [certificate authority] gts root r2
+- [certificate authority] globaltrust 2020
+- [certificate authority] quovadis root ca 2
+- [certificate authority] swisssign gold ca - g2
+- [certificate authority] Trustwave Global Certification Authority
+- [certificate authority] quovadis root ca 3
+
 ## [1.32.4] - 2026-05-09
 
 ### Removed
