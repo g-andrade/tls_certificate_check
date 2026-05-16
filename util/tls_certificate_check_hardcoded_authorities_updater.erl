@@ -323,9 +323,9 @@ previous_authoritative_certificate_values(#{output_module_name := OutputModuleNa
     end.
 
 updated_changelog(UpdateArgs, Changelog, Additions, Removals) ->
-    AdditionEntries = lists:map(fun certificate_changelog_string/1, Additions),
+    AdditionEntries = sorted_alphabetically([certificate_changelog_string(A) || A <- Additions]),
     ChangeEntry = changelog_change_entry(UpdateArgs),
-    RemovalEntries = lists:map(fun certificate_changelog_string/1, Removals),
+    RemovalEntries = sorted_alphabetically([certificate_changelog_string(R) || R <- Removals]),
 
     Changelog2
         = lists:foldl(
@@ -437,5 +437,19 @@ halt_(Status) ->
     % having "no local return" all over this module.
     OpaqueFunctionName = binary_to_term( term_to_binary(halt) ),
     erlang:OpaqueFunctionName(Status).
+
+sorted_alphabetically(List) ->
+    % Won't work correctly with non-ascii
+    WithSortingKeys =
+        lists:map(
+          fun (S) ->
+                  Casefolded = string:casefold(S),
+                  Charlist = unicode:characters_to_binary(Casefolded),
+                  {Charlist, S}
+          end,
+          List),
+
+    Sorted = lists:keysort(1, WithSortingKeys),
+    [S || {_, S} <- Sorted].
 
 -endif. % ifdef(HARDCODED_AUTHORITIES_UPDATER_SUPPORTED).
