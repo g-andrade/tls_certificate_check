@@ -19,3 +19,6 @@ _build
 rebar3.crashdump
 /doc/
 /tmp/
+
+# asdf
+.tool-versions
