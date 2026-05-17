@@ -44,15 +44,17 @@
 %% ------------------------------------------------------------------
 
 all() ->
-    [real_certificate_test,
-     good_certificate_test,
-     sni_test,
-     expired_certificate_test,
-     future_certificate_test,
-     wrong_host_certificate_test,
-     self_signed_certificate_test,
-     unknown_ca_test,
-     misordered_chain_test].
+    [
+        real_certificate_test,
+        good_certificate_test,
+        sni_test,
+        expired_certificate_test,
+        future_certificate_test,
+        wrong_host_certificate_test,
+        self_signed_certificate_test,
+        unknown_ca_test,
+        misordered_chain_test
+    ].
 
 init_per_suite(Config) ->
     {ok, _} = application:ensure_all_started(tls_certificate_check),
@@ -68,9 +70,11 @@ end_per_suite(_Config) ->
 real_certificate_test(_Config) ->
     {ok, _} = application:ensure_all_started(inets),
     try
-        URLs = shuffle_list(["https://example.com",
-                             "https://www.google.com",
-                             "https://www.meta.com"]),
+        URLs = shuffle_list([
+            "https://example.com",
+            "https://www.google.com",
+            "https://www.meta.com"
+        ]),
         real_certificate_test_recur(URLs)
     after
         application:stop(inets)
@@ -78,101 +82,139 @@ real_certificate_test(_Config) ->
 
 good_certificate_test(_Config) ->
     tls_certificate_check_test_utils:connect(
-      ?PEMS_PATH, "foobar.pem",
-      leaf, "good_certificate.pem",
-      fun ({ok, Socket}) ->
-              ssl:close(Socket)
-      end).
+        ?PEMS_PATH,
+        "foobar.pem",
+        leaf,
+        "good_certificate.pem",
+        fun({ok, Socket}) ->
+            ssl:close(Socket)
+        end
+    ).
 
 sni_test(_Config) ->
-    Certs = {multiple, #{
-        "localhost" => "good_certificate.pem",
-        "localhost2" => "good_certificate_for_localhost2.pem"
-    }},
-    Keys = {multiple, #{
-        "localhost" => "localhost_key.pem",
-        "localhost2" => "localhost2_key.pem"
-    }},
+    Certs =
+        {multiple, #{
+            "localhost" => "good_certificate.pem",
+            "localhost2" => "good_certificate_for_localhost2.pem"
+        }},
+    Keys =
+        {multiple, #{
+            "localhost" => "localhost_key.pem",
+            "localhost2" => "localhost2_key.pem"
+        }},
 
     % Good hostname A
     %
     tls_certificate_check_test_utils:connect(
-      ?PEMS_PATH, "foobar.pem",
-      leaf, Certs,
-      fun ({ok, Socket}) ->
-              ssl:close(Socket)
-      end,
-      [{key, Keys}]),
+        ?PEMS_PATH,
+        "foobar.pem",
+        leaf,
+        Certs,
+        fun({ok, Socket}) ->
+            ssl:close(Socket)
+        end,
+        [{key, Keys}]
+    ),
 
     % Good hostname B
     %
     tls_certificate_check_test_utils:connect(
-      ?PEMS_PATH, "foobar.pem",
-      leaf, Certs,
-      fun ({ok, Socket}) ->
-              ssl:close(Socket)
-      end,
-      [{key, Keys},
-       {hostname, {"localhost2", {127, 0, 0, 1}}}]),
+        ?PEMS_PATH,
+        "foobar.pem",
+        leaf,
+        Certs,
+        fun({ok, Socket}) ->
+            ssl:close(Socket)
+        end,
+        [
+            {key, Keys},
+            {hostname, {"localhost2", {127, 0, 0, 1}}}
+        ]
+    ),
 
     % Bad hostname
     %
     tls_certificate_check_test_utils:connect(
-      ?PEMS_PATH, "foobar.pem",
-      leaf, Certs,
-      fun ({error, ?MISMATCHED_SNI_ERROR_REASON_PATTERN}) ->
-              ok
-      end,
-      [{key, Keys},
-       {hostname, {"localhost3", {127, 0, 0, 1}}}]).
+        ?PEMS_PATH,
+        "foobar.pem",
+        leaf,
+        Certs,
+        fun({error, ?MISMATCHED_SNI_ERROR_REASON_PATTERN}) ->
+            ok
+        end,
+        [
+            {key, Keys},
+            {hostname, {"localhost3", {127, 0, 0, 1}}}
+        ]
+    ).
 
 expired_certificate_test(_Config) ->
     tls_certificate_check_test_utils:connect(
-      ?PEMS_PATH, "foobar.pem",
-      leaf, "expired_certificate.pem",
-      fun ({error, {tls_alert, {certificate_expired, _}}}) ->
-              ok
-      end).
+        ?PEMS_PATH,
+        "foobar.pem",
+        leaf,
+        "expired_certificate.pem",
+        fun({error, {tls_alert, {certificate_expired, _}}}) ->
+            ok
+        end
+    ).
 
 future_certificate_test(_Config) ->
     tls_certificate_check_test_utils:connect(
-      ?PEMS_PATH, "foobar.pem",
-      leaf, "future_certificate.pem",
-      fun ({error, {tls_alert, {certificate_expired, _}}}) ->
-              ok
-      end).
+        ?PEMS_PATH,
+        "foobar.pem",
+        leaf,
+        "future_certificate.pem",
+        fun({error, {tls_alert, {certificate_expired, _}}}) ->
+            ok
+        end
+    ).
 
 wrong_host_certificate_test(_Config) ->
     tls_certificate_check_test_utils:connect(
-      ?PEMS_PATH, "foobar.pem",
-      leaf, "wrong.host.pem", "wrong.host_key.pem",
-      fun ({error, {tls_alert, {handshake_failure, _}}}) ->
-              ok
-      end).
+        ?PEMS_PATH,
+        "foobar.pem",
+        leaf,
+        "wrong.host.pem",
+        "wrong.host_key.pem",
+        fun({error, {tls_alert, {handshake_failure, _}}}) ->
+            ok
+        end
+    ).
 
 self_signed_certificate_test(_Config) ->
     tls_certificate_check_test_utils:connect(
-      ?PEMS_PATH, "foobar.pem",
-      leaf, "self_signed.pem", "self_signed_key.pem",
-      fun ({error, {tls_alert, {bad_certificate, _}}}) ->
-              ok
-      end).
+        ?PEMS_PATH,
+        "foobar.pem",
+        leaf,
+        "self_signed.pem",
+        "self_signed_key.pem",
+        fun({error, {tls_alert, {bad_certificate, _}}}) ->
+            ok
+        end
+    ).
 
 unknown_ca_test(_Config) ->
     tls_certificate_check_test_utils:connect(
-      ?PEMS_PATH, "foobar.pem",
-      leaf, "unknown_ca.pem",
-      fun ({error, {tls_alert, {unknown_ca, _}}}) ->
-              ok
-      end).
+        ?PEMS_PATH,
+        "foobar.pem",
+        leaf,
+        "unknown_ca.pem",
+        fun({error, {tls_alert, {unknown_ca, _}}}) ->
+            ok
+        end
+    ).
 
 misordered_chain_test(_Config) ->
     tls_certificate_check_test_utils:connect(
-      ?PEMS_PATH, "foobar.pem",
-      chain, "misordered_chain.pem",
-      fun ({ok, Socket}) ->
-              ssl:close(Socket)
-      end).
+        ?PEMS_PATH,
+        "foobar.pem",
+        chain,
+        "misordered_chain.pem",
+        fun({ok, Socket}) ->
+            ssl:close(Socket)
+        end
+    ).
 
 %% ------------------------------------------------------------------
 %% Internal
@@ -185,13 +227,19 @@ real_certificate_test_recur([Url | Next]) ->
     Opts = [],
 
     case httpc:request(head, {Url, Headers}, HttpOpts, Opts) of
-        {ok, {{_, StatusCode, _}, _, _}}
-          when is_integer(StatusCode) ->
+        {ok, {{_, StatusCode, _}, _, _}} when
+            is_integer(StatusCode)
+        ->
             ok;
         {error, Reason} ->
-            ?assertNotMatch({error, {failed_connect, [{to_address, {_, _}},
-                                                      {inet, [inet], {tls_alert, _}}]}},
-                            Reason),
+            ?assertNotMatch(
+                {error,
+                    {failed_connect, [
+                        {to_address, {_, _}},
+                        {inet, [inet], {tls_alert, _}}
+                    ]}},
+                Reason
+            ),
             ct:pal("Failed: ~p", [Reason]),
             real_certificate_test_recur(Next)
     end;

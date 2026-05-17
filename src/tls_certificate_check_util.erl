@@ -25,19 +25,21 @@
 %% API Function Exports
 %% ------------------------------------------------------------------
 
--export([process_authorities/1,
-         is_termination_reason_wholesome/1]).
+-export([
+    process_authorities/1,
+    is_termination_reason_wholesome/1
+]).
 
 %% ------------------------------------------------------------------
 %% API Function Definitions
 %% ------------------------------------------------------------------
 
--spec process_authorities(binary() | [public_key:der_encoded()])
-        -> {ok, [public_key:der_encoded(), ...]}
-           | {error, no_authoritative_certificates_found}
-           | {error, {failed_to_decode, {atom(), term(), list()}}}
-           | {error, {certificate_encrypted, public_key:der_encoded()}}
-           | {error, {unexpected_certificate_format, tuple()}}.
+-spec process_authorities(binary() | [public_key:der_encoded()]) ->
+    {ok, [public_key:der_encoded(), ...]}
+    | {error, no_authoritative_certificates_found}
+    | {error, {failed_to_decode, {atom(), term(), list()}}}
+    | {error, {certificate_encrypted, public_key:der_encoded()}}
+    | {error, {unexpected_certificate_format, tuple()}}.
 process_authorities(<<EncodedAuthorities/bytes>>) ->
     try public_key:pem_decode(EncodedAuthorities) of
         List when is_list(List) ->
@@ -46,7 +48,7 @@ process_authorities(<<EncodedAuthorities/bytes>>) ->
         Class:Reason:Stacktrace ->
             {error, {failed_to_decode, {Class, Reason, Stacktrace}}}
     end;
-process_authorities([_|_] = AuthoritativeCertificateValues) ->
+process_authorities([_ | _] = AuthoritativeCertificateValues) ->
     authoritative_certificate_values(AuthoritativeCertificateValues);
 process_authorities([]) ->
     {error, no_authoritative_certificates_found}.
@@ -84,4 +86,3 @@ authoritative_certificate_values_recur([Head | Next], ValuesAcc) ->
 authoritative_certificate_values_recur([], ValuesAcc) ->
     Values = lists:reverse(ValuesAcc),
     {ok, Values}.
-

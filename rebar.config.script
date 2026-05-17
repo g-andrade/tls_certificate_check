@@ -1,14 +1,67 @@
-% vim: set ft=erlang:
+% -*- mode: erlang; -*- vim: set ft=erlang:
+
 case erlang:function_exported(rebar3, main, 1)
      orelse erlang:function_exported('Elixir.Mix', module_info, 1)
      orelse {deps, lists:keyfind(deps, 1, CONFIG)}
 of
     true ->
         % either rebar3 or mix
-        CONFIG;
+        begin
+            TakeOutProjPlugin
+                = fun (Name, Config) ->
+                    {project_plugins, ProjPlugins}
+                        = lists:keyfind(project_plugins, 1, Config),
+                    {value, {_, Version}, RemainingProjPlugins}
+                        = lists:keytake(Name, 1, ProjPlugins),
+                    % logger:notice("Dropping proj plugin '~ts' ~ts", [Name, Version]),
+                    _UpdatedConfig
+                        = lists:keystore(project_plugins, 1, Config,
+                                         {project_plugins, RemainingProjPlugins})
+                  end,
+
+            TakeOutElvis
+                = fun (Config) ->
+                    TakeOutProjPlugin(rebar3_lint, Config)
+                  end,
+
+            TakeOutErlFmt
+                = fun (Config) ->
+                    TakeOutProjPlugin(erlfmt, Config)
+                  end,
+
+            TakeOutHank
+                = fun (Config) ->
+                    TakeOutProjPlugin(rebar3_hank, Config)
+                  end,
+
+            OtpRelease = erlang:system_info(otp_release),
+
+            try list_to_integer(OtpRelease) of
+                IntRelease when IntRelease =< 25 ->
+                    % Take dev helpers away as they're no longer compatible with OTP 25
+                    TakeOutHank(TakeOutErlFmt(TakeOutElvis(CONFIG)));
+                %
+                IntRelease when IntRelease =< 26 ->
+                    % -doc tags wreak havok
+                    TakeOutErlFmt(CONFIG);
+                %
+                _ ->
+                    CONFIG
+            catch
+                error:badarg ->
+                    logger:warning("Don't now how to compare to OTP release: ~tp", [OtpRelease]),
+                    CONFIG
+            end
+        end;
+    %
+    %
+    %
     {deps, false} ->
         % no override needed
         CONFIG;
+    %
+    %
+    %
     {deps, {_, Deps}} ->
         %
         % rebar 2.x - convert deps to old format

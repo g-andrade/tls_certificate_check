@@ -31,22 +31,44 @@
 %% ------------------------------------------------------------------
 
 connect(PemsPath, AuthoritiesFilename, ChainOrLeaf, CertsConf, Fun) ->
-    connect(PemsPath, AuthoritiesFilename, ChainOrLeaf, CertsConf, Fun,
-            _Opts = []).
+    connect(
+        PemsPath,
+        AuthoritiesFilename,
+        ChainOrLeaf,
+        CertsConf,
+        Fun,
+        _Opts = []
+    ).
 
-connect(PemsPath, AuthoritiesFilename, ChainOrLeaf, CertsConf, KeyFilename, Fun)
-  when is_function(Fun) ->
-    connect(PemsPath, AuthoritiesFilename, ChainOrLeaf, CertsConf, Fun,
-            _Opts = [{key, KeyFilename}]);
-connect(PemsPath, AuthoritiesFilename, ChainOrLeaf, CertsConf, Fun,
-        Opts)  ->
+connect(PemsPath, AuthoritiesFilename, ChainOrLeaf, CertsConf, KeyFilename, Fun) when
+    is_function(Fun)
+->
+    connect(
+        PemsPath,
+        AuthoritiesFilename,
+        ChainOrLeaf,
+        CertsConf,
+        Fun,
+        _Opts = [{key, KeyFilename}]
+    );
+connect(
+    PemsPath,
+    AuthoritiesFilename,
+    ChainOrLeaf,
+    CertsConf,
+    Fun,
+    Opts
+) ->
     KeyConf = proplists:get_value(key, Opts, "localhost_key.pem"),
     AuthoritiesPath = filename:join([PemsPath, "CA_stores", AuthoritiesFilename]),
     ok = tls_certificate_check:override_trusted_authorities({file, AuthoritiesPath}),
 
-    {ListenSocket, Port, AcceptorPid} = start_server_with_chain(PemsPath, ChainOrLeaf,
-                                                                CertsConf,
-                                                                KeyConf),
+    {ListenSocket, Port, AcceptorPid} = start_server_with_chain(
+        PemsPath,
+        ChainOrLeaf,
+        CertsConf,
+        KeyConf
+    ),
     try
         ConnectRes = connect(Opts, Port),
         _ = Fun(ConnectRes)
@@ -87,34 +109,46 @@ start_server_with_chain(PemsPath, ChainOrLeaf, CertsConf, KeyConf) ->
     {ListenSocket, Port, AcceptorPid}.
 
 server_options(PemsPath, ChainOrLeaf, CertsConf, KeyConf) ->
-    [{ip, {127, 0, 0, 1}},
-     {reuseaddr, true}
-     | certs_options(PemsPath, ChainOrLeaf, CertsConf, KeyConf)].
+    [
+        {ip, {127, 0, 0, 1}},
+        {reuseaddr, true}
+        | certs_options(PemsPath, ChainOrLeaf, CertsConf, KeyConf)
+    ].
 
-certs_options(PemsPath, ChainOrLeaf, CertFilename, KeyFilename)
-  when is_list(CertFilename), is_list(KeyFilename) ->
+certs_options(PemsPath, ChainOrLeaf, CertFilename, KeyFilename) when
+    is_list(CertFilename), is_list(KeyFilename)
+->
     cert_options_for_paths(PemsPath, ChainOrLeaf, CertFilename, KeyFilename);
-certs_options(PemsPath, ChainOrLeaf,
-              {multiple, CertFilenames},
-              {multiple, KeyFilenames}) ->
-    [{sni_hosts, maps:fold(
-        fun (Hostname, CertFilename, Acc) ->
-                KeyFilename = maps:get(Hostname, KeyFilenames),
-                Opts = cert_options_for_paths(PemsPath, ChainOrLeaf, CertFilename, KeyFilename),
-                [{Hostname, Opts} | Acc]
-        end,
-        _Acc0 = [],
-        CertFilenames)}].
+certs_options(
+    PemsPath,
+    ChainOrLeaf,
+    {multiple, CertFilenames},
+    {multiple, KeyFilenames}
+) ->
+    [
+        {sni_hosts,
+            maps:fold(
+                fun(Hostname, CertFilename, Acc) ->
+                    KeyFilename = maps:get(Hostname, KeyFilenames),
+                    Opts = cert_options_for_paths(PemsPath, ChainOrLeaf, CertFilename, KeyFilename),
+                    [{Hostname, Opts} | Acc]
+                end,
+                _Acc0 = [],
+                CertFilenames
+            )}
+    ].
 
 cert_options_for_paths(PemsPath, ChainOrLeaf, CertFilename, KeyFilename) ->
     ChainOrLeafDir = chain_or_leaf_dir(ChainOrLeaf),
     CertsPath = filename:join([PemsPath, ChainOrLeafDir, CertFilename]),
     KeyPath = filename:join([PemsPath, "leaf_certificates", KeyFilename]),
 
-    [{certfile, CertsPath},
-     % Ugh: http://erlang.org/pipermail/erlang-questions/2020-May/099521.html
-     {cacertfile, CertsPath},
-     {keyfile, KeyPath}].
+    [
+        {certfile, CertsPath},
+        % Ugh: http://erlang.org/pipermail/erlang-questions/2020-May/099521.html
+        {cacertfile, CertsPath},
+        {keyfile, KeyPath}
+    ].
 
 chain_or_leaf_dir(chain) ->
     "certificate_chains";
@@ -122,21 +156,21 @@ chain_or_leaf_dir(leaf) ->
     "leaf_certificates".
 
 start_ssl_acceptor(ListenSocket) ->
-    spawn_link(fun () -> run_ssl_acceptor(ListenSocket) end).
+    spawn_link(fun() -> run_ssl_acceptor(ListenSocket) end).
 
 run_ssl_acceptor(ListenSocket) ->
     receive
         stop -> exit(normal)
-    after
-        0 -> ok
+    after 0 -> ok
     end,
 
     case ssl:transport_accept(ListenSocket, _Timeout = 100) of
         {ok, Transportsocket} ->
             _ = ssl:handshake(Transportsocket),
             run_ssl_acceptor(ListenSocket);
-        {error, Reason}
-          when Reason =:= timeout; Reason =:= closed ->
+        {error, Reason} when
+            Reason =:= timeout; Reason =:= closed
+        ->
             run_ssl_acceptor(ListenSocket)
     end.
 

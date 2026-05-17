@@ -4,7 +4,7 @@
     {registered, [
         tls_certificate_check_shared_state,
         tls_certificate_check_sup
-     ]},
+    ]},
     {mod, {tls_certificate_check_app, []}},
     {applications, [
         crypto,

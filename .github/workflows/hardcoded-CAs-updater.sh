@@ -36,7 +36,7 @@ git add .
 git commit -a -m "${PR_TITLE}"
 git push "$REMOTE" "$BRANCH"
 
-PR_LABEL="hardcoded authorities update"
+PR_LABEL="hardcoded-CAs-update"
 if ! gh pr list --state open --label "$PR_LABEL" | grep "${PR_TITLE}" >/dev/null; then
     gh pr create --fill \
         --title "${PR_TITLE}" \

@@ -32,14 +32,19 @@
 %% API Function Exports
 %% ------------------------------------------------------------------
 
--export([options/1,
-         trusted_authorities/0,
-         override_trusted_authorities/1]).
+-export([
+    options/1,
+    trusted_authorities/0,
+    override_trusted_authorities/1
+]).
 
 -ignore_xref(
-        [options/1,
-         trusted_authorities/0,
-         override_trusted_authorities/1]).
+    [
+        options/1,
+        trusted_authorities/0,
+        override_trusted_authorities/1
+    ]
+).
 
 %% ------------------------------------------------------------------
 %% Macro Definitions
@@ -56,11 +61,10 @@
 -type option() :: ssl:tls_client_option().
 -export_type([option/0]).
 
--type override_source()
-    :: {file, Path :: file:name_all()}
-    |  {encoded, binary()}
-    |  (CAs :: [public_key:der_encoded()])
-    .
+-type override_source() ::
+    {file, Path :: file:name_all()}
+    | {encoded, binary()}
+    | (CAs :: [public_key:der_encoded()]).
 -export_type([override_source/0]).
 
 %% ------------------------------------------------------------------
@@ -69,38 +73,41 @@
 
 -ifdef(E48).
 -doc """
-Returns the list of `ssl:connect/3` options necessary to validate 
-the server certificate against a list of trusted authorities, as well as to verify 
+Returns the list of `ssl:connect/3` options necessary to validate
+the server certificate against a list of trusted authorities, as well as to verify
 whether the server hostname matches one in the server certificate.
 
 - `Target` can be either a hostname or an HTTP URL, as `t:iodata/0`
 """.
 -endif.
--spec options(Target) -> Options
-        when Target :: Hostname | URL,
-             Hostname :: iodata(),
-             URL :: iodata(),
-             Options :: [option()].
+-spec options(Target) -> Options when
+    Target :: Hostname | URL,
+    Hostname :: iodata(),
+    URL :: iodata(),
+    Options :: [option()].
 options(Target) ->
     try target_to_hostname(Target) of
         Hostname ->
             CAs = trusted_authorities(),
             CertificateVerificationFunOptions = [{check_hostname, Hostname}],
-            CertificateVerificationFun = {fun ssl_verify_hostname:verify_fun/3,
-                                          CertificateVerificationFunOptions},
+            CertificateVerificationFun = {
+                fun ssl_verify_hostname:verify_fun/3, CertificateVerificationFunOptions
+            },
 
             % Required for OTP 23 as it fixed TLS hostname validation.
             % See: https://bugs.erlang.org/browse/ERL-1232
             Protocol = https,
             HostnameMatchFun = public_key:pkix_verify_hostname_match_fun(Protocol),
 
-            [{verify, verify_peer},
-             {depth, ?DEFAULT_MAX_CERTIFICATE_CHAIN_DEPTH},
-             {cacerts, CAs},
-             {verify_fun, CertificateVerificationFun},
-             {partial_chain, fun tls_certificate_check_shared_state:find_trusted_authority/1},
-             {customize_hostname_check, [{match_fun, HostnameMatchFun}]}
-             | maybe_sni_opts(Hostname)]
+            [
+                {verify, verify_peer},
+                {depth, ?DEFAULT_MAX_CERTIFICATE_CHAIN_DEPTH},
+                {cacerts, CAs},
+                {verify_fun, CertificateVerificationFun},
+                {partial_chain, fun tls_certificate_check_shared_state:find_trusted_authority/1},
+                {customize_hostname_check, [{match_fun, HostnameMatchFun}]}
+                | maybe_sni_opts(Hostname)
+            ]
     catch
         http_target ->
             []
@@ -109,16 +116,16 @@ options(Target) ->
 -ifdef(E48).
 -doc "Returns the list of trusted authorities.".
 -endif.
--spec trusted_authorities() -> CAs
-      when CAs :: [public_key:der_encoded(), ...].
+-spec trusted_authorities() -> CAs when
+    CAs :: [public_key:der_encoded(), ...].
 trusted_authorities() ->
     tls_certificate_check_shared_state:authoritative_certificate_values().
 
 -ifdef(E48).
 -doc "Overrides the trusted authorities with a custom source.".
 -endif.
--spec override_trusted_authorities(From) -> ok
-      when From :: override_source().
+-spec override_trusted_authorities(From) -> ok when
+    From :: override_source().
 override_trusted_authorities(Source) ->
     case try_overriding_trusted_authorities(Source) of
         ok ->
@@ -142,27 +149,36 @@ target_to_hostname(Target) ->
             binary_to_list(BinaryTarget)
     end.
 
--spec try_overriding_trusted_authorities(From) -> ok | {error, Reason}
-      when From :: override_source(),
-           Reason :: term().
+-spec try_overriding_trusted_authorities(From) -> ok | {error, Reason} when
+    From :: override_source(),
+    Reason :: term().
 try_overriding_trusted_authorities({file, Path} = OverrideSource) ->
     case file:read_file(Path) of
         {ok, EncodedAuthorities} ->
-            try_overriding_trusted_authorities(_Source = {override, OverrideSource},
-                                               EncodedAuthorities);
+            try_overriding_trusted_authorities(
+                _Source = {override, OverrideSource},
+                EncodedAuthorities
+            );
         {error, Reason} ->
             {error, {read_file, #{path => Path, why => Reason}}}
     end;
 try_overriding_trusted_authorities({encoded, <<EncodedAuthorities/bytes>>}) ->
-    try_overriding_trusted_authorities(_Source = {override, encoded_binary},
-                                       EncodedAuthorities);
+    try_overriding_trusted_authorities(
+        _Source = {override, encoded_binary},
+        EncodedAuthorities
+    );
 try_overriding_trusted_authorities(Authorities) when is_list(Authorities) ->
-    try_overriding_trusted_authorities(_Source = {override, list_of_cas},
-                                       Authorities).
+    try_overriding_trusted_authorities(
+        _Source = {override, list_of_cas},
+        Authorities
+    ).
 
 try_overriding_trusted_authorities(Source, UnprocessedAuthorities) ->
-    case tls_certificate_check_shared_state:maybe_update_shared_state(Source,
-                                                                      UnprocessedAuthorities)
+    case
+        tls_certificate_check_shared_state:maybe_update_shared_state(
+            Source,
+            UnprocessedAuthorities
+        )
     of
         noproc ->
             {error, {application_either_not_started_or_not_ready, tls_certificate_check}};
@@ -188,7 +204,7 @@ maybe_sni_opts(Hostname) ->
 
 trusted_authorities_is_exported_test() ->
     {ok, _} = application:ensure_all_started(tls_certificate_check),
-    ?assertMatch([_|_], ?MODULE:trusted_authorities()).
+    ?assertMatch([_ | _], ?MODULE:trusted_authorities()).
 
 http_target_test() ->
     {ok, _} = application:ensure_all_started(tls_certificate_check),
@@ -196,36 +212,46 @@ http_target_test() ->
 
 https_target_test() ->
     {ok, _} = application:ensure_all_started(tls_certificate_check),
-    ?assertMatch([_|_], ?MODULE:options("https://example.com/")).
+    ?assertMatch([_ | _], ?MODULE:options("https://example.com/")).
 
 generic_tls_target_test() ->
     {ok, _} = application:ensure_all_started(tls_certificate_check),
-    ?assertMatch([_|_], ?MODULE:options("example.com")).
+    ?assertMatch([_ | _], ?MODULE:options("example.com")).
 
 https_and_generic_tls_targets_equivalence_test() ->
     ?assertEqual(
-       ?MODULE:options("example.com"),
-       ?MODULE:options("https://example.com/")
-      ).
+        ?MODULE:options("example.com"),
+        ?MODULE:options("https://example.com/")
+    ).
 
 sni_restrictions_test() ->
     % Ip addresses have no SNI
     ?assertEqual(
         false,
-        lists:keyfind(server_name_indication, 1,
-                      ?MODULE:options("93.184.216.34"))
+        lists:keyfind(
+            server_name_indication,
+            1,
+            ?MODULE:options("93.184.216.34")
+        )
     ),
     ?assertEqual(
         false,
-        lists:keyfind(server_name_indication, 1,
-                      ?MODULE:options("2606:2800:220:1:248:1893:25c8:1946"))
+        lists:keyfind(
+            server_name_indication,
+            1,
+            ?MODULE:options("2606:2800:220:1:248:1893:25c8:1946")
+        )
     ),
 
     % Regular hostnames do
     ?assertMatch(
         {server_name_indication, _},
-        lists:keyfind(server_name_indication, 1,
-                      ?MODULE:options("example.com"))
+        lists:keyfind(
+            server_name_indication,
+            1,
+            ?MODULE:options("example.com")
+        )
     ).
 
--endif. % -ifdef(TEST).
+% -ifdef(TEST).
+-endif.

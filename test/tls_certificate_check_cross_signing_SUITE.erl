@@ -40,10 +40,12 @@ groups() ->
     [{individual_tests, [{repeat, ?REPEAT_N}, shuffle], test_names()}].
 
 test_names() ->
-    [good_chain_with_expired_root_test,
-     bad_chain_with_expired_root_test,
-     cross_signing_with_one_recognized_ca_test,
-     cross_signing_with_one_other_recognized_ca_test].
+    [
+        good_chain_with_expired_root_test,
+        bad_chain_with_expired_root_test,
+        cross_signing_with_one_recognized_ca_test,
+        cross_signing_with_one_other_recognized_ca_test
+    ].
 
 init_per_testcase(_TestConfig, Config) ->
     {ok, _} = application:ensure_all_started(tls_certificate_check),
@@ -58,11 +60,14 @@ end_per_testcase(_TestConfig, _Config) ->
 
 good_chain_with_expired_root_test(_Config) ->
     tls_certificate_check_test_utils:connect(
-      ?PEMS_PATH, "good_ca_store_for_expiry.pem",
-      chain, "localhost_chain_for_expiry.pem",
-      fun ({ok, Socket}) ->
-              ssl:close(Socket)
-      end).
+        ?PEMS_PATH,
+        "good_ca_store_for_expiry.pem",
+        chain,
+        "localhost_chain_for_expiry.pem",
+        fun({ok, Socket}) ->
+            ssl:close(Socket)
+        end
+    ).
 
 -ifdef(EXPIRED_CAs_ARE_CONSIDERED_VALID).
 
@@ -72,31 +77,43 @@ bad_chain_with_expired_root_test(_Config) ->
 -else.
 bad_chain_with_expired_root_test(_Config) ->
     tls_certificate_check_test_utils:connect(
-      ?PEMS_PATH, "bad_ca_store_for_expiry.pem",
-      chain, "localhost_chain_for_expiry.pem",
-      fun ({ok, Socket}) ->
-              ssl:close(Socket)
-      end).
--endif. % ifdef(FLAKY_CROSS_SIGNING_VALIDATION
+        ?PEMS_PATH,
+        "bad_ca_store_for_expiry.pem",
+        chain,
+        "localhost_chain_for_expiry.pem",
+        fun({ok, Socket}) ->
+            ssl:close(Socket)
+        end
+    ).
+% ifdef(FLAKY_CROSS_SIGNING_VALIDATION
+-endif.
 
--else. % ifdef(EXPIRED_CAs_ARE_CONSIDERED_VALID)
+% ifdef(EXPIRED_CAs_ARE_CONSIDERED_VALID)
+-else.
 bad_chain_with_expired_root_test(_Config) ->
     tls_certificate_check_test_utils:connect(
-      ?PEMS_PATH, "bad_ca_store_for_expiry.pem",
-      chain, "localhost_chain_for_expiry.pem",
-      fun ({error, {tls_alert, {certificate_expired, _}}}) ->
-              ok
-      end).
+        ?PEMS_PATH,
+        "bad_ca_store_for_expiry.pem",
+        chain,
+        "localhost_chain_for_expiry.pem",
+        fun({error, {tls_alert, {certificate_expired, _}}}) ->
+            ok
+        end
+    ).
 
--endif. % -ifdef(EXPIRED_CAs_ARE_CONSIDERED_VALID)
+% -ifdef(EXPIRED_CAs_ARE_CONSIDERED_VALID)
+-endif.
 
 cross_signing_with_one_recognized_ca_test(_Config) ->
     tls_certificate_check_test_utils:connect(
-      ?PEMS_PATH, "ca_store1_for_cross_signing.pem",
-      chain, "localhost_chain_for_cross_signing.pem",
-      fun ({ok, Socket}) ->
-              ssl:close(Socket)
-      end).
+        ?PEMS_PATH,
+        "ca_store1_for_cross_signing.pem",
+        chain,
+        "localhost_chain_for_cross_signing.pem",
+        fun({ok, Socket}) ->
+            ssl:close(Socket)
+        end
+    ).
 
 -ifdef(FLAKY_CROSS_SIGNING_VALIDATION).
 cross_signing_with_one_other_recognized_ca_test(_Config) ->
@@ -105,10 +122,14 @@ cross_signing_with_one_other_recognized_ca_test(_Config) ->
 -else.
 cross_signing_with_one_other_recognized_ca_test(_Config) ->
     tls_certificate_check_test_utils:connect(
-      ?PEMS_PATH, "ca_store2_for_cross_signing.pem",
-      chain, "localhost_chain_for_cross_signing.pem",
-      fun ({ok, Socket}) ->
-              ssl:close(Socket)
-      end).
+        ?PEMS_PATH,
+        "ca_store2_for_cross_signing.pem",
+        chain,
+        "localhost_chain_for_cross_signing.pem",
+        fun({ok, Socket}) ->
+            ssl:close(Socket)
+        end
+    ).
 
--endif. % -ifdef(FLAKY_CROSS_SIGNING_VALIDATION)
+% -ifdef(FLAKY_CROSS_SIGNING_VALIDATION)
+-endif.

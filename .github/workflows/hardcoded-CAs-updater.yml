@@ -20,6 +20,6 @@ jobs:
           otp-version: 27.2
           rebar3-version: 3.24
       - run: |
-          .github/workflows/hardcoded-authorities-updater.sh
+          .github/workflows/hardcoded-CAs-updater.sh
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

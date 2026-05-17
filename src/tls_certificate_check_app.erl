@@ -26,8 +26,10 @@
 %% application Function Exports
 %% ------------------------------------------------------------------
 
--export([start/2,
-         stop/1]).
+-export([
+    start/2,
+    stop/1
+]).
 
 %% ------------------------------------------------------------------
 %% application Function Definitions

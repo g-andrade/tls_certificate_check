@@ -1,3 +1,4 @@
+%%% % @noformat
 %% Copyright (c) 2021-2026 Guilherme Andrade
 %%
 %% Permission is hereby granted, free of charge, to any person obtaining a
@@ -63,8 +64,9 @@ encoded_list() ->
 maybe_update_shared_state() ->
     % For code swaps / release upgrades
     EncodedCertificates = encoded_list(),
-    case tls_certificate_check_shared_state:maybe_update_shared_state(_Source = hardcoded,
-                                                                      EncodedCertificates) of
+    case tls_certificate_check_shared_state:maybe_update_shared_state(
+        _Source = hardcoded, EncodedCertificates
+    ) of
         noproc -> ok;
         Other -> Other
     end.

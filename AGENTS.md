@@ -10,12 +10,18 @@ On OTP 25+ it prefers OTP's own system CA store and falls back to the bundled on
 
 ## Build & test
 
-    make test          # eunit + ct + cover (includes Elixir tests if mix is available)
-    make check         # dialyzer + xref
-    make build         # compile only
+    make compile       # compile only
+    make test          # eunit + ct (includes Elixir tests if mix is available)
+    make check         # all checks: formatting, xref, hank, elvis, dialyzer
+    make check-fast    # fast checks only: formatting, xref, hank, elvis (no dialyzer)
+    make check-slow    # slow checks only: dialyzer
+    make format        # auto-format with erlfmt
 
 Run `make test` before pushing any change. Elixir tests use `castore` and `certifi` as
 test deps and require `mix` to be available; if not, they are silently skipped.
+
+CI runs `check-fast` before tests and `check-slow` after. The three new linters
+(`erlfmt`, `rebar3_hank`, `rebar3_lint`/elvis) are skipped gracefully on OTP ≤ 25.
 
 ## Checking docs
 
@@ -33,7 +39,7 @@ Run this to verify that documentation builds cleanly. Do not break docs.
 | `src/tls_certificate_check_hardcoded_authorities.erl` | **Generated.** Do not edit by hand. |
 | `src/tls_certificate_check_app.erl` | OTP application callback |
 | `src/tls_certificate_check_sup.erl` | Supervisor |
-| `util/tls_certificate_check_hardcoded_authorities_updater.erl` | Escript that regenerates the above |
+| `util/tls_certificate_check_hardcoded_CAs_updater.erl` | Escript that regenerates the above |
 
 ## Test fixtures
 
@@ -44,9 +50,9 @@ and CA stores used by the CT suites. Do not edit them by hand.
 
 `src/tls_certificate_check_hardcoded_authorities.erl` is generated from Mozilla's CA
 bundle (via curl) and **must not be edited by hand**. Updates are automated via a
-scheduled GitHub Actions workflow (`.github/workflows/hardcoded-authorities-updater.yml`)
+scheduled GitHub Actions workflow (`.github/workflows/hardcoded-CAs-updater.yml`)
 that runs on weekdays and opens a PR when the upstream bundle changes. Do not run
-`make hardcoded-authorities-update` unless explicitly asked to.
+`make hardcoded-CAs-update` unless explicitly asked to.
 
 ## Code conventions
 
@@ -57,4 +63,7 @@ that runs on weekdays and opens a PR when the upstream bundle changes. Do not ru
   runtime version checks.
 - No `export_all` in production modules (`warn_export_all` is on).
 - Keep the `rebar.config` profiles in mind: `test`, `elixir_test`,
-  `hardcoded_authorities_update`, `development` — each has different deps and `erl_opts`.
+  `hardcoded_CAs_update`, `shell` — each has different deps and `erl_opts`.
+- Code must be formatted with `erlfmt` (`make format`). `make check-fast` enforces this.
+- `rebar3_hank` flags dead code; `rebar3_lint` (elvis) enforces style rules. Both run
+  under `make check-fast` and are skipped gracefully on older OTP versions.

@@ -48,7 +48,7 @@ jobs:
         if: ${{runner.os != 'Windows'}}
         run: |
           echo "prev_github_run_number=$((${{github.run_number}} - 1))" >> "$GITHUB_ENV"
-          echo "build_cache_prefix=_build-cache2-for-os-${{runner.os}}-otp-${{matrix.otp_vsn}}-rebar3-${{steps.setup-beam.outputs.rebar3-version}}" >> "$GITHUB_ENV"
+          echo "build_cache_prefix=_build-cache3-for-os-${{runner.os}}-otp-${{matrix.otp_vsn}}-rebar3-${{steps.setup-beam.outputs.rebar3-version}}" >> "$GITHUB_ENV"
 
       - name: "Non-Windows: set dynamic env (2)"
         if: ${{runner.os != 'Windows'}}
@@ -60,7 +60,7 @@ jobs:
         run: |
           # https://github.com/actions/runner-images/issues/5251#issuecomment-1071030822
           echo "prev_github_run_number=$(${{github.run_number}} - 1)" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
-          echo "build_cache_prefix=_build-cache2-for-os-${{runner.os}}B-otp-${{matrix.otp_vsn}}-rebar3-${{steps.setup-beam.outputs.rebar3-version}}" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
+          echo "build_cache_prefix=_build-cache3-for-os-${{runner.os}}B-otp-${{matrix.otp_vsn}}-rebar3-${{steps.setup-beam.outputs.rebar3-version}}" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
 
       - name: "Windows: set dynamic env (2)"
         if: ${{runner.os == 'Windows'}}
@@ -76,11 +76,14 @@ jobs:
             ${{env.build_cache_prefix_with_hash}}-
             ${{env.build_cache_prefix}}-
 
-      - name: Run Checks
-        run: make check
+      - name: Run Fast Checks
+        run: make check-fast
 
       - name: Run Tests
         run: make test
+
+      - name: Run Slow Checks
+        run: make check-slow
 
       - name: Save build artifacts to cache
         if: always()
