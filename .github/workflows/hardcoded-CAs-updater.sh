@@ -16,14 +16,14 @@ git checkout "${BASE_BRANCH}"
 git reset --hard "origin/${BASE_BRANCH}"
 git clean -ffdx
 
-make hardcoded-authorities-update
+make hardcoded-CAs-update
 if [[ -z $(git status -s) ]]; then
     # no update
     exit
 fi
 
 DATE=$(date -r tmp/cacerts.pem '+%Y/%m/%d') # linux-specific
-BRANCH=automation/hardcoded-authorities-update/$DATE
+BRANCH=automation/hardcoded-CAs-update/$DATE
 if git branch -a | grep "${BRANCH}" >/dev/null; then
     # branch already created
     exit
