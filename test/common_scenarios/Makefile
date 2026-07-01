@@ -26,6 +26,7 @@ leaf_certificates/good_certificate.pem: leaf_certificates/localhost.csr
 	faketime -f '-5y' openssl x509 \
 		-req \
 		-in leaf_certificates/localhost.csr \
+		-copy_extensions copy \
 		-CA CAs/foobar_ca.pem \
 		-CAkey CAs/foobar_ca_key.pem \
 		-CAcreateserial \
@@ -38,6 +39,7 @@ leaf_certificates/good_certificate_for_localhost2.pem: leaf_certificates/localho
 	faketime -f '-5y' openssl x509 \
 		-req \
 		-in leaf_certificates/localhost2.csr \
+		-copy_extensions copy \
 		-CA CAs/foobar_ca.pem \
 		-CAkey CAs/foobar_ca_key.pem \
 		-CAcreateserial \
@@ -50,6 +52,7 @@ leaf_certificates/expired_certificate.pem: leaf_certificates/localhost.csr
 	faketime -f '-5y' openssl x509 \
 		-req \
 		-in leaf_certificates/localhost.csr \
+		-copy_extensions copy \
 		-CA CAs/foobar_ca.pem \
 		-CAkey CAs/foobar_ca_key.pem \
 		-CAcreateserial \
@@ -62,6 +65,7 @@ leaf_certificates/future_certificate.pem: leaf_certificates/localhost.csr
 	faketime -f '+50y' openssl x509 \
 		-req \
 		-in leaf_certificates/localhost.csr \
+		-copy_extensions copy \
 		-CA CAs/foobar_ca.pem \
 		-CAkey CAs/foobar_ca_key.pem \
 		-CAcreateserial \
@@ -74,6 +78,7 @@ leaf_certificates/wrong.host.pem: leaf_certificates/wrong.host.csr
 	faketime -f '-5y' openssl x509 \
 		-req \
 		-in leaf_certificates/wrong.host.csr \
+		-copy_extensions copy \
 		-CA CAs/foobar_ca.pem \
 		-CAkey CAs/foobar_ca_key.pem \
 		-CAcreateserial \
@@ -88,6 +93,7 @@ leaf_certificates/self_signed.pem: leaf_certificates/self_signed_key.pem
 		-sha256 \
 		-days 20075 \
 		-subj '/CN=localhost' \
+		-addext "subjectAltName = DNS:localhost" \
 		-out $@
 
 leaf_certificates/unknown_ca.pem: CAs/another_ca.pem
@@ -95,6 +101,7 @@ leaf_certificates/unknown_ca.pem: leaf_certificates/localhost.csr
 	faketime -f '-5y' openssl x509 \
 		-req \
 		-in leaf_certificates/localhost.csr \
+		-copy_extensions copy \
 		-CA CAs/another_ca.pem \
 		-CAkey CAs/another_ca_key.pem \
 		-CAcreateserial \
@@ -121,6 +128,7 @@ leaf_certificates/good_certificate_with_intermediate_ca.pem: leaf_certificates/l
 	faketime -f '-5y' openssl x509 \
 		-req \
 		-in leaf_certificates/localhost.csr \
+		-copy_extensions copy \
 		-CA intermediate_certificates/intermediate_cert.pem \
 		-CAkey intermediate_certificates/intermediate_cert_key.pem \
 		-CAcreateserial \
@@ -150,6 +158,7 @@ CA_stores/foobar.pem: CAs/foobar_ca.pem
 		-new \
 		-key $*_key.pem \
 		-subj "/CN=$(*F)" \
+		-addext "subjectAltName = DNS:$(*F)" \
 		-out $@
 
 .PRECIOUS: %_key.pem # prevents removal of what is considered an intermediate file (FIXME untested on macos)

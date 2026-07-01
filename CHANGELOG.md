@@ -20,6 +20,9 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ### Fixed
 
 - warnings emitted by formatter and linter
+- CI test failures on OTP releases carrying the CVE-2026-42790 fix, by giving
+  test fixture certificates a `subjectAltName` (the fix dropped the Subject
+  CommonName fallback in TLS hostname verification)
 
 ## [1.33.0] - 2026-05-16
 

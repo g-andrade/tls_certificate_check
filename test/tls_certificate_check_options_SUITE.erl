@@ -177,7 +177,14 @@ wrong_host_certificate_test(_Config) ->
         leaf,
         "wrong.host.pem",
         "wrong.host_key.pem",
-        fun({error, {tls_alert, {handshake_failure, _}}}) ->
+        %% The alert differs across OTP versions: pre-CVE-2026-42790 releases
+        %% reject the mismatched hostname with `handshake_failure', whereas the
+        %% patched releases (which dropped the Subject CN fallback) report a
+        %% `bad_certificate' with `hostname_check_failed'.
+        fun({error, {tls_alert, {AlertName, _}}}) when
+            AlertName =:= handshake_failure;
+            AlertName =:= bad_certificate
+        ->
             ok
         end
     ).

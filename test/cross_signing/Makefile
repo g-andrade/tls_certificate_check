@@ -56,6 +56,7 @@ leaf_certificates/localhost.pem: leaf_certificates/localhost.csr
 	faketime -f '-5y' openssl x509 \
 		-req \
 		-in leaf_certificates/localhost.csr \
+		-copy_extensions copy \
 		-CA intermediate_certificates/regular_intermediate_cert.pem \
 		-CAkey intermediate_certificates/regular_intermediate_cert_key.pem \
 		-CAcreateserial \
@@ -130,6 +131,7 @@ CAs/expired_ca.pem: CAs/expired_ca_key.pem
 		-new \
 		-key $*_key.pem \
 		-subj "/CN=$(*F)" \
+		-addext "subjectAltName = DNS:$(*F)" \
 		-out $@
 
 .PRECIOUS: %_key.pem # prevents removal of what is considered an intermediate file (FIXME untested on macos)
