@@ -16,6 +16,13 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ### Changed
 
 - structure of build rules and tooling config
+- module with bundled CAs to latest as of 2026/07/16, 03:12 UTC
+(source: https://curl.se/ca/cacert.pem)
+
+### Removed
+
+- [certificate authority] entrust root certification authority
+- [certificate authority] securesign root ca12
 
 ### Fixed
 
