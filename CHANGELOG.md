@@ -5,6 +5,25 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+### Added
+
+- [certificate authority] secom tls ecc root ca 2024
+- [certificate authority] secom tls rsa root ca 2024
+- [certificate authority] Telia EC TLS Root CA v3
+- [certificate authority] Telia RSA TLS Root CA v3
+
+### Changed
+
+- module with bundled CAs to latest as of 2026/08/13, 03:12 UTC
+(source: https://curl.se/ca/cacert.pem)
+
+### Removed
+
+- [certificate authority] Atos TrustedRoot 2011
+- [certificate authority] ePKI Root Certification Authority
+
 ## [1.34.0] - 2026-08-07
 
 ### Added
