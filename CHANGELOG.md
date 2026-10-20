@@ -5,12 +5,10 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
-## [Unreleased]
+## [1.36.0] - 2026-10-20
 
 ### Changed
 
-- module with bundled CAs to latest as of 2026/09/25, 03:12 UTC
-(source: https://curl.se/ca/cacert.pem)
 - module with bundled CAs to latest as of 2026/10/20, 13:32 UTC
 (source: https://curl.se/ca/cacert.pem)
 
