@@ -11,6 +11,14 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 - module with bundled CAs to latest as of 2026/09/25, 03:12 UTC
 (source: https://curl.se/ca/cacert.pem)
+- module with bundled CAs to latest as of 2026/10/20, 13:32 UTC
+(source: https://curl.se/ca/cacert.pem)
+
+### Removed
+
+- [certificate authority] emsign ecc root ca - c3
+- [certificate authority] emsign ecc root ca - g3
+- [certificate authority] emsign root ca - c1
 
 ## [1.35.0] - 2026-08-13
 
